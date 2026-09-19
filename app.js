@@ -477,7 +477,7 @@ function appendHistoryRow(code) {
     const data = guestsDatabase[code]; const tbody = document.getElementById('history-table-body'); if (!tbody) return;
     const tr = document.createElement('tr'); tr.id = `hist-row-${code}`; tr.className = "hover:bg-slate-50/70 transition fade-in";
     tr.innerHTML = `<td class="px-5 py-3.5"><p class="text-[10px] font-mono text-slate-400 font-bold">${code}</p><p class="font-bold text-slate-900">${data.name}</p><p class="text-[11px] text-slate-400">${data.instansi}</p></td><td class="px-5 py-3.5 text-slate-600">${data.displayDate} <br><span class="text-[10px] text-slate-400 font-mono">In: ${data.time} | <span id="hist-out-${code}">Out: -</span></span></td><td class="px-5 py-3.5"><span id="hist-badge-${code}" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 w-max block mx-auto text-center">Menunggu</span></td><td class="px-5 py-3.5 text-center"><button type="button" onclick="openDetailModal('${code}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition active:scale-90 shadow-sm relative z-20 cursor-pointer"><i data-lucide="user" class="w-4 h-4 pointer-events-none"></i></button></td>`;
-    tbody.prepend(tr); lucide.createIcons();
+    tbody.prepend(tr);
 }
 
 window.openDetailModal = function (code) {
