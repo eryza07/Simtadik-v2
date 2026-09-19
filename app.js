@@ -650,10 +650,18 @@ async function restoreSession() {
 window.refreshData = async function() {
     const icon = document.querySelector('#btn-refresh svg');
     if (icon) icon.classList.add('animate-spin');
+    const t0 = Date.now();
     try {
-        const { error } = await supabaseClient.from('guests').select('code').limit(1);
-        if (error) { alert('Gagal refresh: ' + error.message); return; }
-        await loadGuestsFromSupabase();
+        const res = await Promise.race([
+            supabaseClient.from('guests').select('code').limit(1),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('Tes koneksi lebih dari 15 detik')), 15000))
+        ]);
+        if (res.error) throw new Error(res.error.message);
+        await Promise.race([
+            loadGuestsFromSupabase(),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('Muat data lebih dari 25 detik')), 25000))
+        ]);
+        alert('Refresh selesai (' + Math.round((Date.now() - t0) / 1000) + ' detik). Jumlah tamu: ' + Object.keys(guestsDatabase).length);
     } catch (e) {
         alert('Gagal refresh: ' + e.message);
     } finally {
