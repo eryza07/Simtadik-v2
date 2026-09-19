@@ -550,3 +550,38 @@ window.exportToCSV = function() {
     const blob = new Blob(["\uFEFF"+csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob);
     link.setAttribute("href", url); link.setAttribute("download", `Rekap_Tamu_SMAN1_${new Date().getTime()}.csv`); link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
 };
+
+// =========================================================
+// MUAT DATA TAMU DARI SUPABASE SAAT WEB DIBUKA
+// =========================================================
+async function loadGuestsFromSupabase() {
+    const { data, error } = await supabaseClient.from('guests').select('*').order('created_at', { ascending: true });
+    if (error) { console.error('Gagal memuat data dari Supabase:', error); return; }
+
+    data.forEach(row => {
+        const dateObj = new Date(row.date);
+        const displayDate = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
+        const timeStr = row.created_at ? new Date(row.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) + ' WIB' : '-';
+
+        guestsDatabase[row.code] = {
+            name: row.name, phone: row.phone, instansi: row.instansi, kategori: row.kategori,
+            tujuan: row.tujuan, photo: row.photo, date: row.date, displayDate: displayDate,
+            planTime: row.plan_time, time: timeStr, outTime: row.out_time, status: row.status
+        };
+
+        appendHistoryRow(row.code);
+
+        // Perbaiki badge riwayat sesuai status asli
+        const histBadge = document.getElementById(`hist-badge-${row.code}`);
+        const histOut = document.getElementById(`hist-out-${row.code}`);
+        if (histBadge) {
+            if (row.status === 'bertemu') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 w-max block mx-auto text-center"; histBadge.innerText = "Sedang Bertemu"; }
+            else if (row.status === 'selesai') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 w-max block mx-auto text-center"; histBadge.innerText = "Selesai"; if (histOut) histOut.innerText = `Out: ${row.out_time}`; }
+            else if (row.status === 'ditolak') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 w-max block mx-auto text-center"; histBadge.innerText = "Dibatalkan"; if (histOut) histOut.innerText = "Out: Dibatalkan"; }
+        }
+    });
+
+    refreshDashboardMetrics();
+}
+
+loadGuestsFromSupabase();
