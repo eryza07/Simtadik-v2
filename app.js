@@ -600,30 +600,56 @@ async function loadGuestsFromSupabase() {
     refreshDashboardMetrics();
 }
 
-loadGuestsFromSupabase().then(() => restoreSession());
+const SB_STORAGE_KEY = 'sb-lwxigjhogjuwnhdloabr-auth-token';
 
-async function restoreSession() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) return;
+function roleFromEmail(email) {
+    if (email.startsWith('admin@')) return 'admin';
+    if (email.startsWith('kepsek@')) return 'kepsek';
+    return null;
+}
 
-    const email = session.user.email;
+function applyRoleUI(role) {
+    currentUserRole = role;
     document.getElementById('guest-nav-group').classList.add('hidden');
-
-    if (email.startsWith('admin@')) {
-        currentUserRole = 'admin';
-        document.getElementById('admin-nav-group').classList.remove('hidden'); document.getElementById('admin-nav-group').classList.add('flex');
-        switchAppView('view-admin-overview');
-    } else if (email.startsWith('kepsek@')) {
-        currentUserRole = 'kepsek';
-        document.getElementById('kepsek-nav-group').classList.remove('hidden'); document.getElementById('kepsek-nav-group').classList.add('flex');
-        switchAppView('view-kepsek-overview');
-    } else { return; }
-
+    const nav = document.getElementById(role + '-nav-group');
+    nav.classList.remove('hidden'); nav.classList.add('flex');
     document.getElementById('header-notif-container').classList.remove('hidden');
     const btnAction = document.getElementById('btn-sidebar-action');
     btnAction.classList.replace('bg-rose-500', 'bg-slate-800'); btnAction.classList.replace('hover:bg-rose-600', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-rose-500/25', 'shadow-slate-800/25');
     document.getElementById('sidebar-icon').setAttribute('data-lucide', 'log-out'); document.getElementById('sidebar-text').innerText = "Keluar";
-
-    lucide.createIcons(); renderMobileNav(); refreshDashboardMetrics();
-    checkNotifPermission();
+    renderMobileNav();
+    switchAppView('view-' + role + '-overview');
+    lucide.createIcons();
 }
+
+(function instantRestore() {
+    try {
+        const raw = localStorage.getItem(SB_STORAGE_KEY);
+        const s = raw ? JSON.parse(raw) : null;
+        const email = s?.user?.email || s?.currentSession?.user?.email || '';
+        const role = roleFromEmail(email);
+        if (role) applyRoleUI(role);
+    } catch (e) { console.error('instantRestore gagal:', e); }
+})();
+
+restoreSession();
+
+async function restoreSession() {
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const role = roleFromEmail(session?.user?.email || '');
+        if (role && currentUserRole === 'guest') applyRoleUI(role);
+        if (!role && currentUserRole !== 'guest') await processLogout();
+    } catch (e) { console.error('restoreSession gagal:', e); }
+
+    try { await loadGuestsFromSupabase(); } catch (e) { console.error('Muat data gagal:', e); }
+    lucide.createIcons();
+    if (currentUserRole !== 'guest') checkNotifPermission();
+}
+
+window.refreshData = async function() {
+    const icon = document.querySelector('#btn-refresh svg');
+    if (icon) icon.classList.add('animate-spin');
+    await loadGuestsFromSupabase();
+    if (icon) icon.classList.remove('animate-spin');
+};
