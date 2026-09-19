@@ -313,7 +313,7 @@ function refreshDashboardMetrics() {
     for (const code in guestsDatabase) {
         const item = guestsDatabase[code];
         if (item.status === 'menunggu') menunggu++; else if (item.status === 'bertemu') bertemu++; else if (item.status === 'selesai') selesai++; else if (item.status === 'ditolak') ditolak++;
-        const k = item.kategori.toLowerCase(); if (k.includes('siswa')) siswa++; else if (k.includes('dinas')) dinas++; else if (k.includes('guru')) guru++; else umum++;
+        const k = (item.kategori || '').toLowerCase(); if (k.includes('siswa')) siswa++; else if (k.includes('dinas')) dinas++; else if (k.includes('guru')) guru++; else umum++;
     }
 
     const totalTamu = menunggu + bertemu + selesai;
@@ -571,6 +571,9 @@ async function loadGuestsFromSupabase() {
     const { data, error } = await supabaseClient.from('guests').select('*').order('created_at', { ascending: true });
     if (error) { console.error('Gagal memuat data dari Supabase:', error); return; }
 
+    for (const k in guestsDatabase) delete guestsDatabase[k];
+    const hb = document.getElementById('history-table-body'); if (hb) hb.innerHTML = '';
+  
     data.forEach(row => {
         const dateObj = new Date(row.date);
         const displayDate = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
