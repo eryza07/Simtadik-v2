@@ -208,7 +208,8 @@ window.executeSafeLogin = async function() {
     checkNotifPermission();
 };
 
-window.processLogout = function() {
+window.processLogout = async function() {
+    await supabaseClient.auth.signOut();
     currentUserRole = 'guest'; document.getElementById('admin-nav-group').classList.add('hidden'); document.getElementById('admin-nav-group').classList.remove('flex'); document.getElementById('kepsek-nav-group').classList.add('hidden'); document.getElementById('kepsek-nav-group').classList.remove('flex'); document.getElementById('guest-nav-group').classList.remove('hidden'); document.getElementById('guest-nav-group').classList.add('flex'); document.getElementById('header-notif-container').classList.add('hidden'); document.getElementById('notif-dropdown').classList.add('hidden');
     const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-slate-800', 'bg-rose-500'); btnAction.classList.replace('hover:bg-slate-700', 'hover:bg-rose-600'); btnAction.classList.replace('shadow-slate-800/25', 'shadow-rose-500/25');
     document.getElementById('sidebar-icon').setAttribute('data-lucide', 'lock'); document.getElementById('sidebar-text').innerText = "Login";
@@ -596,4 +597,30 @@ async function loadGuestsFromSupabase() {
     refreshDashboardMetrics();
 }
 
-loadGuestsFromSupabase();
+loadGuestsFromSupabase().then(() => restoreSession());
+
+async function restoreSession() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+
+    const email = session.user.email;
+    document.getElementById('guest-nav-group').classList.add('hidden');
+
+    if (email.startsWith('admin@')) {
+        currentUserRole = 'admin';
+        document.getElementById('admin-nav-group').classList.remove('hidden'); document.getElementById('admin-nav-group').classList.add('flex');
+        switchAppView('view-admin-overview');
+    } else if (email.startsWith('kepsek@')) {
+        currentUserRole = 'kepsek';
+        document.getElementById('kepsek-nav-group').classList.remove('hidden'); document.getElementById('kepsek-nav-group').classList.add('flex');
+        switchAppView('view-kepsek-overview');
+    } else { return; }
+
+    document.getElementById('header-notif-container').classList.remove('hidden');
+    const btnAction = document.getElementById('btn-sidebar-action');
+    btnAction.classList.replace('bg-rose-500', 'bg-slate-800'); btnAction.classList.replace('hover:bg-rose-600', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-rose-500/25', 'shadow-slate-800/25');
+    document.getElementById('sidebar-icon').setAttribute('data-lucide', 'log-out'); document.getElementById('sidebar-text').innerText = "Keluar";
+
+    lucide.createIcons(); renderMobileNav(); refreshDashboardMetrics();
+    checkNotifPermission();
+}
