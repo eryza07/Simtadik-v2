@@ -567,6 +567,8 @@ window.exportToCSV = function() {
 // =========================================================
 // MUAT DATA TAMU DARI SUPABASE SAAT WEB DIBUKA
 // =========================================================
+const PHOTO_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='400'><rect width='300' height='400' fill='%23e2e8f0'/></svg>";
+
 async function loadGuestsFromSupabase() {
     const { data, error } = await supabaseClient
         .from('guests')
