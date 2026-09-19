@@ -575,7 +575,7 @@ async function loadGuestsFromSupabase() {
         .from('guests')
         .select('code,name,phone,instansi,kategori,tujuan,date,plan_time,status,out_time,created_at')
         .order('created_at', { ascending: true });
-    if (error) { console.error('Gagal memuat data dari Supabase:', error); return; }
+    if (error) { alert('Gagal memuat: ' + error.message); return; }
 
     const oldDb = Object.assign({}, guestsDatabase);
     for (const k in guestsDatabase) delete guestsDatabase[k];
