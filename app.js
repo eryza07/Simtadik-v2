@@ -1,3 +1,8 @@
+const supabase = window.supabase.createClient(
+  'https://lwxigjhogjuwnhdloabr.supabase.co',   // ganti dengan Project URL kamu
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3eGlnamhvZ2p1d25oZGxvYWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3ODAzODUsImV4cCI6MjEwNTM1NjM4NX0.ZeqGjx_wEUswazXOkpjCSIlZt0YS5ii4_IVgpKbvdzM'          // ganti dengan anon key kamu
+);
+
 lucide.createIcons();
 
 const guestsDatabase = {};
