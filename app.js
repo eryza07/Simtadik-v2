@@ -568,26 +568,35 @@ window.exportToCSV = function() {
 // MUAT DATA TAMU DARI SUPABASE SAAT WEB DIBUKA
 // =========================================================
 async function loadGuestsFromSupabase() {
-    const { data, error } = await supabaseClient.from('guests').select('*').order('created_at', { ascending: true });
+    const PHOTO_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='400'><rect width='300' height='400' fill='%23e2e8f0'/></svg>";
+
+async function loadGuestsFromSupabase() {
+    const { data, error } = await supabaseClient
+        .from('guests')
+        .select('code,name,phone,instansi,kategori,tujuan,date,plan_time,status,out_time,created_at')
+        .order('created_at', { ascending: true });
     if (error) { console.error('Gagal memuat data dari Supabase:', error); return; }
 
+    const oldDb = Object.assign({}, guestsDatabase);
     for (const k in guestsDatabase) delete guestsDatabase[k];
     const hb = document.getElementById('history-table-body'); if (hb) hb.innerHTML = '';
-  
+
     data.forEach(row => {
         const dateObj = new Date(row.date);
         const displayDate = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
         const timeStr = row.created_at ? new Date(row.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) + ' WIB' : '-';
+        const old = oldDb[row.code];
+        const hasPhoto = !!(old && old.photo && old.photo !== PHOTO_PLACEHOLDER);
 
         guestsDatabase[row.code] = {
             name: row.name, phone: row.phone, instansi: row.instansi, kategori: row.kategori,
-            tujuan: row.tujuan, photo: row.photo, date: row.date, displayDate: displayDate,
+            tujuan: row.tujuan, photo: hasPhoto ? old.photo : PHOTO_PLACEHOLDER, photoLoaded: hasPhoto,
+            date: row.date, displayDate: displayDate,
             planTime: row.plan_time, time: timeStr, outTime: row.out_time, status: row.status
         };
 
         appendHistoryRow(row.code);
 
-        // Perbaiki badge riwayat sesuai status asli
         const histBadge = document.getElementById(`hist-badge-${row.code}`);
         const histOut = document.getElementById(`hist-out-${row.code}`);
         if (histBadge) {
@@ -597,7 +606,42 @@ async function loadGuestsFromSupabase() {
         }
     });
 
+    lucide.createIcons();
     refreshDashboardMetrics();
+    loadActivePhotos();
+}
+
+async function loadActivePhotos() {
+    try {
+        const { data, error } = await supabaseClient.from('guests').select('code,photo').in('status', ['menunggu', 'bertemu']);
+        if (error || !data) return;
+        data.forEach(r => { const g = guestsDatabase[r.code]; if (g) { g.photo = r.photo; g.photoLoaded = true; } });
+        renderActiveGuestsGrid(); renderKepsekDashboard();
+    } catch (e) { console.error('Muat foto gagal:', e); }
+}
+
+async function ensurePhoto(code) {
+    const g = guestsDatabase[code];
+    if (!g) return null;
+    if (g.photoLoaded) return g.photo;
+    try {
+        const { data, error } = await supabaseClient.from('guests').select('photo').eq('code', code).single();
+        if (error || !data) return null;
+        g.photo = data.photo; g.photoLoaded = true;
+        return g.photo;
+    } catch (e) { return null; }
+}
+
+const _openDetailAsli = window.openDetailModal;
+window.openDetailModal = function (code) {
+    _openDetailAsli(code);
+    ensurePhoto(code).then(src => { if (src && activeDetailCode === code) document.getElementById('detail-photo').src = src; });
+};
+const _verifyAsli = window.executeVerification;
+window.executeVerification = function (code) {
+    _verifyAsli(code);
+    ensurePhoto(code).then(src => { if (src && codeToVerify === code) document.getElementById('v-res-photo').src = src; });
+};
 }
 
 const SB_STORAGE_KEY = 'sb-lwxigjhogjuwnhdloabr-auth-token';
