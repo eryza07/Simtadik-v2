@@ -650,6 +650,13 @@ async function restoreSession() {
 window.refreshData = async function() {
     const icon = document.querySelector('#btn-refresh svg');
     if (icon) icon.classList.add('animate-spin');
-    await loadGuestsFromSupabase();
-    if (icon) icon.classList.remove('animate-spin');
+    try {
+        const { error } = await supabaseClient.from('guests').select('code').limit(1);
+        if (error) { alert('Gagal refresh: ' + error.message); return; }
+        await loadGuestsFromSupabase();
+    } catch (e) {
+        alert('Gagal refresh: ' + e.message);
+    } finally {
+        if (icon) icon.classList.remove('animate-spin');
+    }
 };
