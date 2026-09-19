@@ -208,6 +208,10 @@ window.executeSafeLogin = async function() {
     checkNotifPermission();
 };
 
+checkNotifPermission();
+  await loadGuestsFromSupabase();
+};
+
 window.processLogout = async function() {
     await supabaseClient.auth.signOut();
     currentUserRole = 'guest'; document.getElementById('admin-nav-group').classList.add('hidden'); document.getElementById('admin-nav-group').classList.remove('flex'); document.getElementById('kepsek-nav-group').classList.add('hidden'); document.getElementById('kepsek-nav-group').classList.remove('flex'); document.getElementById('guest-nav-group').classList.remove('hidden'); document.getElementById('guest-nav-group').classList.add('flex'); document.getElementById('header-notif-container').classList.add('hidden'); document.getElementById('notif-dropdown').classList.add('hidden');
