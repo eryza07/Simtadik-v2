@@ -175,7 +175,7 @@ window.handleLoginEnter = function(e) { if (e.key === 'Enter') { e.preventDefaul
 window.executeSafeLogin = function() {
     const userVal = document.getElementById('username-input').value.trim().toLowerCase(); const passVal = document.getElementById('password-input').value.trim();
     if(!userVal || !passVal) { alert("Username dan Password tidak boleh kosong!"); return; }
-    let roleValid = null; if (userVal === 'simtadikadmin' && passVal === 'simtadikpass') roleValid = 'admin'; else if (userVal === 'kepsekuser' && passVal === 'passkepsek') roleValid = 'kepsek';
+    let roleValid = null; if (userVal === 'admin' && passVal === 'admin') roleValid = 'admin'; else if (userVal === 'kepsekuser' && passVal === 'passkepsek') roleValid = 'kepsek';
     if (!roleValid) { alert("Akses Ditolak: Username atau Password salah!"); return; }
     
     document.getElementById('btn-do-login').disabled = true; document.getElementById('login-text').classList.add('hidden'); document.getElementById('login-spinner').classList.remove('hidden');
