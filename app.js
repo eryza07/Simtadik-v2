@@ -276,7 +276,11 @@ window.changeGuestStatus = function(code, newStatus) {
         if (newStatus === 'selesai' || newStatus === 'ditolak') {
             const o = new Date(); data.outTime = newStatus === 'selesai' ? `${o.getHours().toString().padStart(2, '0')}:${o.getMinutes().toString().padStart(2, '0')} WIB` : 'Ditolak';
         }
-
+      
+        supabaseClient.from('guests').update({ status: newStatus, out_time: data.outTime }).eq('code', code).then(({ error }) => {
+            if (error) console.error('Gagal update status ke Supabase:', error);
+        });
+      
         const histBadge = document.getElementById(`hist-badge-${code}`); const histOut = document.getElementById(`hist-out-${code}`);
         if (histBadge) {
             if (newStatus === 'bertemu') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 w-max block mx-auto text-center"; histBadge.innerText = "Sedang Bertemu"; } 
