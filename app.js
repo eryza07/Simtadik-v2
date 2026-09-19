@@ -177,27 +177,35 @@ function updateChartData(siswa, dinas, guru, umum) { const dataObj = [siswa, din
 // LOGIN AMAN & LOGOUT
 // =========================================================
 window.handleLoginEnter = function(e) { if (e.key === 'Enter') { e.preventDefault(); executeSafeLogin(); } };
-window.executeSafeLogin = function() {
+window.executeSafeLogin = async function() {
     const userVal = document.getElementById('username-input').value.trim().toLowerCase(); const passVal = document.getElementById('password-input').value.trim();
     if(!userVal || !passVal) { alert("Username dan Password tidak boleh kosong!"); return; }
-    let roleValid = null; if (userVal === 'admin' && passVal === 'admin') roleValid = 'admin'; else if (userVal === 'kepsekuser' && passVal === 'passkepsek') roleValid = 'kepsek';
-    if (!roleValid) { alert("Akses Ditolak: Username atau Password salah!"); return; }
-    
-    document.getElementById('btn-do-login').disabled = true; document.getElementById('login-text').classList.add('hidden'); document.getElementById('login-spinner').classList.remove('hidden');
-    setTimeout(() => {
-        document.getElementById('btn-do-login').disabled = false; document.getElementById('login-text').classList.remove('hidden'); document.getElementById('login-spinner').classList.add('hidden');
-        document.getElementById('guest-nav-group').classList.add('hidden'); document.getElementById('admin-nav-group').classList.add('hidden'); document.getElementById('kepsek-nav-group').classList.add('hidden');
+    if (userVal !== 'admin' && userVal !== 'kepsek') { alert("Akses Ditolak: Username atau Password salah!"); return; }
 
-        if(roleValid === 'kepsek') { currentUserRole = 'kepsek'; document.getElementById('kepsek-nav-group').classList.remove('hidden'); document.getElementById('kepsek-nav-group').classList.add('flex'); switchAppView('view-kepsek-overview'); } 
-        else if (roleValid === 'admin') { currentUserRole = 'admin'; document.getElementById('admin-nav-group').classList.remove('hidden'); document.getElementById('admin-nav-group').classList.add('flex'); switchAppView('view-admin-overview'); }
-        
-        document.getElementById('header-notif-container').classList.remove('hidden');
-        const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-rose-500', 'bg-slate-800'); btnAction.classList.replace('hover:bg-rose-600', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-rose-500/25', 'shadow-slate-800/25');
-        document.getElementById('sidebar-icon').setAttribute('data-lucide', 'log-out'); document.getElementById('sidebar-text').innerText = "Keluar";
-        
-        lucide.createIcons(); renderMobileNav(); refreshDashboardMetrics(); document.getElementById('username-input').value = ""; document.getElementById('password-input').value = "";
-        checkNotifPermission();
-    }, 800);
+    document.getElementById('btn-do-login').disabled = true; document.getElementById('login-text').classList.add('hidden'); document.getElementById('login-spinner').classList.remove('hidden');
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email: userVal + '@sman1kandangan.local', password: passVal });
+
+    if (error) {
+        document.getElementById('btn-do-login').disabled = false; document.getElementById('login-text').classList.remove('hidden'); document.getElementById('login-spinner').classList.add('hidden');
+        alert("Akses Ditolak: Username atau Password salah!");
+        return;
+    }
+
+    const roleValid = userVal === 'admin' ? 'admin' : 'kepsek';
+
+    document.getElementById('btn-do-login').disabled = false; document.getElementById('login-text').classList.remove('hidden'); document.getElementById('login-spinner').classList.add('hidden');
+    document.getElementById('guest-nav-group').classList.add('hidden'); document.getElementById('admin-nav-group').classList.add('hidden'); document.getElementById('kepsek-nav-group').classList.add('hidden');
+
+    if(roleValid === 'kepsek') { currentUserRole = 'kepsek'; document.getElementById('kepsek-nav-group').classList.remove('hidden'); document.getElementById('kepsek-nav-group').classList.add('flex'); switchAppView('view-kepsek-overview'); }
+    else if (roleValid === 'admin') { currentUserRole = 'admin'; document.getElementById('admin-nav-group').classList.remove('hidden'); document.getElementById('admin-nav-group').classList.add('flex'); switchAppView('view-admin-overview'); }
+
+    document.getElementById('header-notif-container').classList.remove('hidden');
+    const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-rose-500', 'bg-slate-800'); btnAction.classList.replace('hover:bg-rose-600', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-rose-500/25', 'shadow-slate-800/25');
+    document.getElementById('sidebar-icon').setAttribute('data-lucide', 'log-out'); document.getElementById('sidebar-text').innerText = "Keluar";
+
+    lucide.createIcons(); renderMobileNav(); refreshDashboardMetrics(); document.getElementById('username-input').value = ""; document.getElementById('password-input').value = "";
+    checkNotifPermission();
 };
 
 window.processLogout = function() {
