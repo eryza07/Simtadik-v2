@@ -426,6 +426,22 @@ window.submitGuestForm = function() {
     const code = `SMAN1-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
     guestsDatabase[code] = { name: guestName, phone: guestPhone, instansi: instansi, kategori: kategori + kelas, tujuan: tujuan, photo: photoSrc, date: guestDate, displayDate: displayDate, planTime: planTimeWIB, time: timeStrWIB, outTime: '-', status: 'menunggu' };
 
+      supabaseClient.from('guests').insert([{
+        code: code,
+        name: guestName,
+        phone: guestPhone,
+        instansi: instansi,
+        kategori: kategori + kelas,
+        tujuan: tujuan,
+        photo: photoSrc,
+        date: guestDate,
+        plan_time: planTimeWIB,
+        status: 'menunggu',
+        out_time: '-'
+    }]).then(({ error }) => {
+        if (error) console.error('Gagal simpan ke Supabase:', error);
+    });
+
     const submitBtn = document.getElementById('btn-submit-guest'); if(submitBtn) submitBtn.disabled = true; 
     document.getElementById('submit-text').innerText = "Memproses Tiket..."; document.getElementById('submit-icon').classList.add('hidden'); document.getElementById('submit-spinner').classList.remove('hidden');
 
