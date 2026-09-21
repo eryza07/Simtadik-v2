@@ -93,23 +93,48 @@
                             <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Lengkap *</label><input type="text" id="guest-name" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 transition"></div>
                             <div><label class="block text-xs font-bold text-slate-700 mb-1.5">No. WhatsApp *</label><input type="tel" id="guest-phone" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 transition" placeholder="Contoh: 08123456789"></div>
                         </div>
-                        <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Asal Instansi / Lembaga *</label><input type="text" id="guest-instansi" required placeholder="Contoh: Dinas, Wali Murid" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 transition"></div>
+                        <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Asal Instansi / Lembaga *</label><input type="text" id="guest-instansi" required placeholder="Contoh: Dinas Pendidikan, PT ABC" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 transition"></div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
                             <div><label class="block text-xs font-bold text-slate-700 mb-1.5 flex justify-between"><span>Tgl Pertemuan *</span><i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i></label><input type="date" id="guest-date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 cursor-pointer transition"></div>
                             <div><label class="block text-xs font-bold text-slate-700 mb-1.5 flex justify-between"><span>Rencana Jam Tiba *</span><i data-lucide="clock" class="w-4 h-4 text-slate-400"></i></label><input type="time" id="guest-time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 cursor-pointer transition"></div>
                         </div>
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 items-start">
-                            <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Kategori Tamu *</label><select id="kategori-select" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 transition"><option value="" disabled selected>Pilih Kategori...</option><option value="siswa">Siswa / Siswi</option><option value="dinas">Dinas / Lembaga</option><option value="guru">Guru / Pendidik</option><option value="umum">Wali Murid / Umum</option></select></div>
-                            <div id="kelas-container" class="kelas-wrapper"><div class="kelas-inner pt-0"><label class="block text-xs font-bold text-slate-700 mb-1.5">Kelas / Jurusan</label><input type="text" id="input-kelas" placeholder="Contoh: X MIPA 1" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 transition"></div></div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Kategori Tamu *</label>
+                                <select id="kategori-select" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 transition">
+                                    <option value="" disabled selected>Pilih Kategori...</option>
+                                    <option value="murid">Wali Murid / Siswa</option>
+                                    <option value="karyawan">Karyawan / Swasta / Umum</option>
+                                    <option value="dinas">Dinas Instansi Pemerintah</option>
+                                </select>
+                            </div>
+                            
+                            <div id="dynamic-kategori-container" class="w-full">
+                                <!-- Input Kelas (Muncul jika Murid) -->
+                                <div id="kelas-container" class="hidden fade-in w-full">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Kelas Anak / Siswa *</label>
+                                    <input type="text" id="input-kelas" placeholder="Contoh: X MIPA 1" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 transition">
+                                </div>
+                                
+                                <!-- Input Surat Jalan (Muncul jika Dinas) -->
+                                <div id="surat-container" class="hidden fade-in w-full">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Surat Tugas / Jalan *</label>
+                                    <label class="w-full bg-slate-50 border border-dashed border-slate-300 hover:bg-slate-100 hover:border-slate-400 rounded-xl px-4 py-2.5 text-sm flex items-center justify-between cursor-pointer transition">
+                                        <span id="surat-file-name" class="text-slate-500 truncate w-3/4">Format PDF / Foto</span>
+                                        <div class="bg-slate-200 text-slate-700 px-3 py-1 rounded-lg text-[10px] font-bold">Pilih File</div>
+                                        <input type="file" id="input-surat" accept="image/*,.pdf" class="hidden" onchange="handleSuratUpload(event)">
+                                    </label>
+                                </div>
+                            </div>
                         </div>
+
                         <div><label class="block text-xs font-bold text-slate-700 mb-1.5">Tujuan Bertemu / Keperluan *</label><textarea id="guest-tujuan" rows="2" required placeholder="Jelaskan keperluan secara singkat..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-500 resize-none transition"></textarea></div>
                         
-                        <!-- FITUR BARU: PILIHAN KAMERA ATAU UPLOAD FILE -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Foto Identitas</label>
                             <div class="relative border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-slate-900 flex flex-col items-center justify-center min-h-[220px]">
-                                
                                 <div id="camera-idle" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-10 p-4">
                                     <p class="text-xs font-bold text-slate-500 mb-4 text-center">Pilih metode pengambilan foto:</p>
                                     <div class="flex gap-4 w-full max-w-xs">
@@ -138,7 +163,7 @@
                 </div>
             </div>
 
-            <!-- VIEW 2: TIKET BERHASIL (TOMBOL PDF DIHAPUS, SISA SELESAI SAJA) -->
+            <!-- VIEW 2: TIKET BERHASIL -->
             <div id="view-success" class="app-view hidden fade-in flex-col justify-center h-full max-w-sm mx-auto">
                 <div class="text-center w-full">
                     <div class="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 no-print"><i data-lucide="check-circle" class="w-8 h-8"></i></div><h3 class="text-2xl font-black text-slate-900 mb-1 no-print">Pengajuan Berhasil!</h3><p class="text-slate-500 text-xs mb-6 no-print">Tunjukkan tangkapan layar (Screenshot) tiket ini ke Staf TU saat Anda tiba di sekolah.</p>
@@ -257,7 +282,7 @@
                 <div id="verify-not-found" class="bg-rose-50 text-rose-700 p-5 rounded-2xl border border-rose-100 text-center hidden fade-in mt-6 max-w-md mx-auto"><p class="font-bold text-xs">Kode Tiket Bodong / Tidak Valid</p></div>
             </div>
 
-            <!-- VIEW 8: ADMIN RIWAYAT (HANYA EXPORT EXCEL SAJA SEKARANG) -->
+            <!-- VIEW 8: ADMIN RIWAYAT -->
             <div id="view-admin-history" class="app-view hidden fade-in max-w-5xl mx-auto">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 gap-3">
                     <div><h2 class="text-2xl font-black text-slate-900 tracking-tight">Log Riwayat Tamu</h2><p class="text-xs text-slate-400">Rekapitulasi tamu yang telah selesai berkunjung atau dibatalkan.</p></div>
