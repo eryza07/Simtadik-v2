@@ -1,12 +1,13 @@
 const supabaseClient = window.supabase.createClient(
-  'https://lwxigjhogjuwnhdloabr.supabase.co',   // ganti dengan Project URL kamu
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3eGlnamhvZ2p1d25oZGxvYWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3ODAzODUsImV4cCI6MjEwNTM1NjM4NX0.ZeqGjx_wEUswazXOkpjCSIlZt0YS5ii4_IVgpKbvdzM'          // ganti dengan anon key kamu
+  'https://lwxigjhogjuwnhdloabr.supabase.co',   
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3eGlnamhvZ2p1d25oZGxvYWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3ODAzODUsImV4cCI6MjEwNTM1NjM4NX0.ZeqGjx_wEUswazXOkpjCSIlZt0YS5ii4_IVgpKbvdzM'          
 );
 
 lucide.createIcons();
 
 const guestsDatabase = {};
 let currentUserRole = 'guest'; 
+let suratJalanFile = null; // Menyimpan Base64 Surat Jalan
 
 let chartOverview = null;
 let chartAnalitik = null;
@@ -168,10 +169,37 @@ renderMobileNav(); setTimeout(updateIndicators, 100);
 // =========================================================
 // GRAFIK
 // =========================================================
-function createChartConfig() { return { type: 'bar', data: { labels: ['Siswa', 'Dinas', 'Guru', 'Umum'], datasets: [{ label: 'Jumlah', data: [0, 0, 0, 0], backgroundColor: ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b'], borderRadius: 6, borderSkipped: false, barThickness: 24 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } }, animation: { duration: 1000, easing: 'easeOutQuart' } } }; }
+function createChartConfig() { 
+    return { 
+        type: 'doughnut', 
+        data: { 
+            labels: ['Siswa/Murid', 'Dinas', 'Karyawan/Umum'], 
+            datasets: [{ 
+                label: 'Jumlah Tamu', 
+                data: [0, 0, 0], 
+                backgroundColor: ['#f43f5e', '#3b82f6', '#f59e0b'], 
+                borderWidth: 0,
+                hoverOffset: 6
+            }] 
+        }, 
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            cutout: '65%', 
+            plugins: { 
+                legend: { 
+                    display: true, 
+                    position: 'bottom',
+                    labels: { padding: 15, usePointStyle: true, font: { size: 10, weight: 'bold' } }
+                } 
+            },
+            animation: { duration: 1000, easing: 'easeOutQuart' } 
+        } 
+    }; 
+}
 function initChart() { try { const ctxOverview = document.getElementById('visitorChartOverview'); const ctxAnalitik = document.getElementById('visitorChartAnalitik'); if(ctxOverview) chartOverview = new Chart(ctxOverview, createChartConfig()); if(ctxAnalitik) chartAnalitik = new Chart(ctxAnalitik, createChartConfig()); } catch(e) {} }
 initChart(); 
-function updateChartData(siswa, dinas, guru, umum) { const dataObj = [siswa, dinas, guru, umum]; if (chartOverview) { chartOverview.data.datasets[0].data = dataObj; chartOverview.update(); } if (chartAnalitik) { chartAnalitik.data.datasets[0].data = dataObj; chartAnalitik.update(); } }
+function updateChartData(murid, dinas, umum) { const dataObj = [murid, dinas, umum]; if (chartOverview) { chartOverview.data.datasets[0].data = dataObj; chartOverview.update(); } if (chartAnalitik) { chartAnalitik.data.datasets[0].data = dataObj; chartAnalitik.update(); } }
 
 // =========================================================
 // LOGIN AMAN & LOGOUT
@@ -219,9 +247,51 @@ window.processLogout = async function() {
 };
 
 // =========================================================
-// KAMERA WEBRTC & UPLOAD FILE (FITUR BARU)
+// KAMERA WEBRTC, UPLOAD SURAT JALAN & FILE
 // =========================================================
-document.getElementById('kategori-select')?.addEventListener('change', function () { const container = document.getElementById('kelas-container'); if (this.value === 'siswa') container.classList.add('is-active'); else container.classList.remove('is-active'); });
+document.getElementById('kategori-select')?.addEventListener('change', function () { 
+    const kelasCont = document.getElementById('kelas-container'); 
+    const suratCont = document.getElementById('surat-container');
+    const inputKelas = document.getElementById('input-kelas');
+    const inputSurat = document.getElementById('input-surat');
+    
+    // Reset kondisi tampilan
+    kelasCont.classList.add('hidden');
+    suratCont.classList.add('hidden');
+    inputKelas.removeAttribute('required');
+    inputSurat.removeAttribute('required');
+
+    if (this.value === 'murid') { 
+        kelasCont.classList.remove('hidden');
+        inputKelas.setAttribute('required', 'true');
+    } 
+    else if (this.value === 'dinas') { 
+        suratCont.classList.remove('hidden');
+        inputSurat.setAttribute('required', 'true');
+    } 
+});
+
+window.handleSuratUpload = function(event) {
+    const file = event.target.files[0];
+    const nameLabel = document.getElementById('surat-file-name');
+    if (file) {
+        nameLabel.innerText = file.name;
+        nameLabel.classList.replace('text-slate-500', 'text-slate-900');
+        nameLabel.classList.add('font-bold');
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            suratJalanFile = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    } else {
+        nameLabel.innerText = "Format PDF / Foto";
+        nameLabel.classList.replace('text-slate-900', 'text-slate-500');
+        nameLabel.classList.remove('font-bold');
+        suratJalanFile = null;
+    }
+};
+
 const cameraVideo = document.getElementById('camera-video'); const cameraCanvas = document.getElementById('camera-canvas'); const cameraResult = document.getElementById('camera-result'); let videoStream = null;
 
 async function startCamera() { 
@@ -309,15 +379,19 @@ window.changeGuestStatus = function(code, newStatus) {
 // REFRESH DASHBOARD UI
 // =========================================================
 function refreshDashboardMetrics() {
-    let menunggu = 0, bertemu = 0, selesai = 0, ditolak = 0; let siswa = 0, dinas = 0, guru = 0, umum = 0;
+    let menunggu = 0, bertemu = 0, selesai = 0, ditolak = 0; let murid = 0, dinas = 0, umum = 0;
     for (const code in guestsDatabase) {
         const item = guestsDatabase[code];
         if (item.status === 'menunggu') menunggu++; else if (item.status === 'bertemu') bertemu++; else if (item.status === 'selesai') selesai++; else if (item.status === 'ditolak') ditolak++;
-        const k = (item.kategori || '').toLowerCase(); if (k.includes('siswa')) siswa++; else if (k.includes('dinas')) dinas++; else if (k.includes('guru')) guru++; else umum++;
+        
+        const k = (item.kategori || '').toLowerCase(); 
+        if (k.includes('murid') || k.includes('siswa')) murid++; 
+        else if (k.includes('dinas')) dinas++; 
+        else umum++;
     }
 
     const totalTamu = menunggu + bertemu + selesai;
-    updateChartData(siswa, dinas, guru, umum); 
+    updateChartData(murid, dinas, umum); 
 
     if(document.getElementById('stat-bertemu')) {
         document.getElementById('stat-bertemu').innerText = bertemu; document.getElementById('stat-menunggu-ratio').innerText = menunggu; document.getElementById('stat-checkout-count').innerText = selesai;
@@ -390,7 +464,26 @@ window.resetGuestForm = function() {
     const dateInp = document.getElementById('guest-date'); if (dateInp) dateInp.value = new Date().toISOString().split('T')[0];
     const timeInp = document.getElementById('guest-time');
     if (timeInp) { const now = new Date(); timeInp.value = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`; }
-    const kelasC = document.getElementById('kelas-container'); if (kelasC) kelasC.classList.remove('is-active');
+    
+    // Reset Kelas & Surat
+    const kelasCont = document.getElementById('kelas-container');
+    if (kelasCont) kelasCont.classList.add('hidden');
+    const suratCont = document.getElementById('surat-container');
+    if (suratCont) suratCont.classList.add('hidden');
+
+    const inputKelas = document.getElementById('input-kelas');
+    if (inputKelas) inputKelas.removeAttribute('required');
+    const inputSurat = document.getElementById('input-surat');
+    if (inputSurat) {
+        inputSurat.removeAttribute('required');
+        inputSurat.value = "";
+    }
+    const suratName = document.getElementById('surat-file-name');
+    if (suratName) {
+        suratName.innerText = "Format PDF / Foto";
+        suratName.className = "text-slate-500 truncate w-3/4";
+    }
+    suratJalanFile = null;
 
     if (typeof stopCamera === 'function') stopCamera();
     const cRes = document.getElementById('camera-result'); if (cRes) { cRes.classList.add('hidden'); cRes.src = ""; }
@@ -399,7 +492,6 @@ window.resetGuestForm = function() {
     const cVid = document.getElementById('camera-video'); if(cVid) cVid.classList.add('hidden');
     const bCap = document.getElementById('btn-capture'); if(bCap) bCap.classList.add('hidden');
     
-    // Reset Upload
     const upPhoto = document.getElementById('upload-photo'); if(upPhoto) upPhoto.value = "";
 };
 
@@ -409,10 +501,28 @@ window.finishGuestRegistration = function() {
 };
 
 window.submitGuestForm = function() {
-    const guestName = document.getElementById('guest-name').value; const instansi = document.getElementById('guest-instansi').value; const guestDate = document.getElementById('guest-date').value; const guestPhone = document.getElementById('guest-phone').value; 
-    const guestTimeInput = document.getElementById('guest-time').value; const planTimeWIB = guestTimeInput ? guestTimeInput + ' WIB' : '-';
-    const kategoriSel = document.getElementById('kategori-select'); const kategori = kategoriSel.options[kategoriSel.selectedIndex].text;
-    let kelas = document.getElementById('input-kelas').value; if (kelas && kategoriSel.value === 'siswa') kelas = " - " + kelas; else kelas = "";
+    const guestName = document.getElementById('guest-name').value; 
+    const instansi = document.getElementById('guest-instansi').value; 
+    const guestDate = document.getElementById('guest-date').value; 
+    const guestPhone = document.getElementById('guest-phone').value; 
+    const guestTimeInput = document.getElementById('guest-time').value; 
+    const planTimeWIB = guestTimeInput ? guestTimeInput + ' WIB' : '-';
+    
+    // Logika Kategori Baru
+    const kategoriSel = document.getElementById('kategori-select'); 
+    const valKategori = kategoriSel.value;
+    const textKategori = kategoriSel.options[kategoriSel.selectedIndex].text;
+    
+    let subKategori = "";
+    if (valKategori === 'murid') {
+        const kelas = document.getElementById('input-kelas').value;
+        subKategori = kelas ? " (Kelas: " + kelas + ")" : "";
+    } else if (valKategori === 'dinas') {
+        subKategori = " (Via Surat Dinas)";
+    }
+    
+    const finalKategori = textKategori + subKategori;
+    
     const tujuan = document.getElementById('guest-tujuan').value;
     const photoSrc = cameraResult.src || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400"><rect width="300" height="400" fill="%23f1f5f9"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="16" fill="%2394a3b8">Tanpa Foto</text></svg>';
     const dateObj = new Date(guestDate); const displayDate = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
@@ -437,16 +547,18 @@ window.submitGuestForm = function() {
 
     const now = new Date(); const timeStrWIB = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ' WIB';
     const code = `SMAN1-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-    guestsDatabase[code] = { name: guestName, phone: guestPhone, instansi: instansi, kategori: kategori + kelas, tujuan: tujuan, photo: photoSrc, date: guestDate, displayDate: displayDate, planTime: planTimeWIB, time: timeStrWIB, outTime: '-', status: 'menunggu' };
+    
+    guestsDatabase[code] = { name: guestName, phone: guestPhone, instansi: instansi, kategori: finalKategori, tujuan: tujuan, photo: photoSrc, surat: suratJalanFile, date: guestDate, displayDate: displayDate, planTime: planTimeWIB, time: timeStrWIB, outTime: '-', status: 'menunggu' };
 
-      supabaseClient.from('guests').insert([{
+    supabaseClient.from('guests').insert([{
         code: code,
         name: guestName,
         phone: guestPhone,
         instansi: instansi,
-        kategori: kategori + kelas,
+        kategori: finalKategori,
         tujuan: tujuan,
         photo: photoSrc,
+        // surat_jalan: suratJalanFile, // Nanti hapus // di depannya kalau tabel Supabase sudah ditambah kolom 'surat_jalan'
         date: guestDate,
         plan_time: planTimeWIB,
         status: 'menunggu',
