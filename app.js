@@ -9,6 +9,9 @@ const guestsDatabase = {};
 let currentUserRole = 'guest'; 
 let suratJalanFile = null; 
 
+let chartOverview = null;
+let chartAnalitik = null;
+let chartPie = null;
 let currentActiveView = 'view-guest-form';
 
 // =========================================================
@@ -76,11 +79,6 @@ window.submitReschedule = function() {
 // =========================================================
 // PUSH NOTIFICATION & TOAST
 // =========================================================
-function playTingSound() {
-    const AudioContext = window.AudioContext || window.webkitAudioContext; if (!AudioContext) return;
-    try { const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gainNode = ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.5); gainNode.gain.setValueAtTime(0.5, ctx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5); osc.connect(gainNode); gainNode.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.5); } catch (e) {}
-}
-
 function checkNotifPermission() {
     if (!("Notification" in window)) return;
     const btn = document.getElementById('btn-enable-notif');
@@ -181,14 +179,9 @@ function renderMobileNav() {
 window.toggleLoginAction = function(btn) { if(btn) triggerIconAnimation(btn); if(currentUserRole === 'guest') switchAppView('view-login'); else processLogout(); };
 renderMobileNav(); setTimeout(updateIndicators, 100);
 
-
 // =========================================================
 // GRAFIK BAR BULANAN & PIE CHART STATUS
 // =========================================================
-let chartPie = null;
-let chartAnalitik = null;
-
-// Konfigurasi Bar Chart Bulanan (Kanan)
 function createBarChartConfig() { 
     return { 
         type: 'bar', 
@@ -209,7 +202,6 @@ function createBarChartConfig() {
     }; 
 }
 
-// Konfigurasi Pie Chart Total Pendaftar (Kiri)
 function createPieChartConfig() {
     return {
         type: 'doughnut',
@@ -217,7 +209,7 @@ function createPieChartConfig() {
             labels: ['Selesai', 'Di Ruangan', 'Menunggu', 'Batal'],
             datasets: [{
                 data: [0, 0, 0, 0],
-                backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b', '#ef4444'], // Hijau, Biru, Kuning, Merah
+                backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b', '#ef4444'],
                 borderWidth: 0, hoverOffset: 4
             }]
         },
@@ -234,6 +226,9 @@ function initChart() {
         const ctxPie = document.getElementById('visitorChartPie'); 
         if(ctxPie) chartPie = new Chart(ctxPie, createPieChartConfig()); 
         
+        const ctxOverview = document.getElementById('visitorChartOverview'); 
+        if(ctxOverview) chartOverview = new Chart(ctxOverview, createBarChartConfig()); 
+        
         const ctxAnalitik = document.getElementById('visitorChartAnalitik'); 
         if(ctxAnalitik) chartAnalitik = new Chart(ctxAnalitik, createBarChartConfig()); 
     } catch(e) {} 
@@ -241,25 +236,31 @@ function initChart() {
 initChart(); 
 
 function updateChartDataBulanan() {
-    if (!chartAnalitik || !chartPie) return;
+    const todayISO = new Date().toISOString().split('T')[0];
 
-    let cMenunggu = 0, cBertemu = 0, cSelesai = 0, cDitolak = 0;
-    for (const code in guestsDatabase) {
-        const status = guestsDatabase[code].status;
-        if (status === 'menunggu') cMenunggu++;
-        else if (status === 'bertemu') cBertemu++;
-        else if (status === 'selesai') cSelesai++;
-        else if (status === 'ditolak') cDitolak++;
+    // UPDATE PIE CHART (Khusus Hari Ini)
+    if (chartPie) {
+        let cMenunggu = 0, cBertemu = 0, cSelesai = 0, cDitolak = 0;
+        for (const code in guestsDatabase) {
+            const item = guestsDatabase[code];
+            if (item.date === todayISO) { 
+                if (item.status === 'menunggu') cMenunggu++;
+                else if (item.status === 'bertemu') cBertemu++;
+                else if (item.status === 'selesai') cSelesai++;
+                else if (item.status === 'ditolak') cDitolak++;
+            }
+        }
+        const totalHarian = cMenunggu + cBertemu + cSelesai + cDitolak;
+        chartPie.data.datasets[0].data = [cSelesai, cBertemu, cMenunggu, cDitolak];
+        chartPie.update();
+
+        let pct = 0;
+        if (totalHarian > 0) pct = Math.round((cSelesai / totalHarian) * 100);
+        const elPct = document.getElementById('donut-pct');
+        if (elPct) elPct.innerText = `${pct}%`;
     }
-    const totalSemua = cMenunggu + cBertemu + cSelesai + cDitolak;
-    chartPie.data.datasets[0].data = [cSelesai, cBertemu, cMenunggu, cDitolak];
-    chartPie.update();
 
-    let pct = 0;
-    if (totalSemua > 0) pct = Math.round((cSelesai / totalSemua) * 100);
-    const elPct = document.getElementById('donut-pct');
-    if (elPct) elPct.innerText = `${pct}%`;
-
+    // UPDATE BAR CHART BULANAN (Semua Data Berdasar 6 Bulan)
     const bulanSekarang = new Date().getMonth();
     let labelBulan = [];
     let dataMurid = [0,0,0,0,0,0], dataDinas = [0,0,0,0,0,0], dataUmum = [0,0,0,0,0,0];
@@ -287,11 +288,20 @@ function updateChartDataBulanan() {
         }
     }
 
-    chartAnalitik.data.labels = labelBulan;
-    chartAnalitik.data.datasets[0].data = dataMurid;
-    chartAnalitik.data.datasets[1].data = dataDinas;
-    chartAnalitik.data.datasets[2].data = dataUmum;
-    chartAnalitik.update();
+    if (chartAnalitik) {
+        chartAnalitik.data.labels = labelBulan;
+        chartAnalitik.data.datasets[0].data = dataMurid;
+        chartAnalitik.data.datasets[1].data = dataDinas;
+        chartAnalitik.data.datasets[2].data = dataUmum;
+        chartAnalitik.update();
+    }
+    if (chartOverview) {
+        chartOverview.data.labels = labelBulan;
+        chartOverview.data.datasets[0].data = dataMurid;
+        chartOverview.data.datasets[1].data = dataDinas;
+        chartOverview.data.datasets[2].data = dataUmum;
+        chartOverview.update();
+    }
 }
 
 // =========================================================
@@ -434,8 +444,25 @@ window.retakePhoto = function() {
 function stopCamera() { if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; } }
 
 // =========================================================
-// UPDATE STATUS MASTER (ANTI-BUG UI)
+// SALIN KODE TIKET & UPDATE STATUS
 // =========================================================
+window.copyTicketCode = function(btn) {
+    const code = document.getElementById('ticket-code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+        const icon = btn.querySelector('i');
+        icon.setAttribute('data-lucide', 'check-circle');
+        btn.classList.replace('text-slate-300', 'text-emerald-400');
+        lucide.createIcons();
+        setTimeout(() => {
+            icon.setAttribute('data-lucide', 'copy');
+            btn.classList.replace('text-emerald-400', 'text-slate-300');
+            lucide.createIcons();
+        }, 2000);
+    }).catch(err => {
+        alert("Gagal menyalin kode! Silakan salin manual.");
+    });
+};
+
 window.changeGuestStatus = function(code, newStatus) {
     try {
         const data = guestsDatabase[code]; 
@@ -470,34 +497,47 @@ window.changeGuestStatus = function(code, newStatus) {
 // =========================================================
 function refreshDashboardMetrics() {
     let menunggu = 0, bertemu = 0, selesai = 0, ditolak = 0; 
+    const todayISO = new Date().toISOString().split('T')[0];
+
     for (const code in guestsDatabase) {
         const item = guestsDatabase[code];
-        if (item.status === 'menunggu') menunggu++; 
-        else if (item.status === 'bertemu') bertemu++; 
-        else if (item.status === 'selesai') selesai++; 
-        else if (item.status === 'ditolak') ditolak++;
+        if (item.date === todayISO) {
+            if (item.status === 'menunggu') menunggu++; 
+            else if (item.status === 'bertemu') bertemu++; 
+            else if (item.status === 'selesai') selesai++; 
+            else if (item.status === 'ditolak') ditolak++;
+        }
     }
 
-    const totalTamu = menunggu + bertemu + selesai + ditolak;
+    const totalTamuHariIni = menunggu + bertemu + selesai + ditolak;
     updateChartDataBulanan(); 
 
     if(document.getElementById('stat-bertemu')) {
-        document.getElementById('stat-bertemu').innerText = bertemu; document.getElementById('stat-menunggu-ratio').innerText = menunggu; document.getElementById('stat-checkout-count').innerText = selesai;
+        document.getElementById('stat-bertemu').innerText = bertemu; 
+        document.getElementById('stat-menunggu-ratio').innerText = menunggu; 
+        document.getElementById('stat-checkout-count').innerText = selesai;
+        
         const roomBadge = document.getElementById('room-status-badge');
         if (bertemu > 0) { roomBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-700"; roomBadge.innerText = "Terisi"; } 
         else { roomBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-slate-100 text-slate-600"; roomBadge.innerText = "Kosong"; }
+        
         renderActiveGuestsGrid();
     }
     if(document.getElementById('stat-total-tamu')) {
-        document.getElementById('stat-total-tamu').innerText = totalTamu; 
+        document.getElementById('stat-total-tamu').innerText = totalTamuHariIni; 
     }
+    
     renderScheduleAnalytics(); renderKepsekDashboard();
 }
 
 function renderActiveGuestsGrid() {
     const grid = document.getElementById('active-guests-grid'); const emptyState = document.getElementById('empty-active-state');
     if(!grid) return; grid.innerHTML = "";
-    const activeList = Object.keys(guestsDatabase).map(code => ({ code, ...guestsDatabase[code] })).filter(g => g.status === 'menunggu' || g.status === 'bertemu').reverse();
+    
+    const todayISO = new Date().toISOString().split('T')[0];
+    const activeList = Object.keys(guestsDatabase).map(code => ({ code, ...guestsDatabase[code] }))
+        .filter(g => g.date === todayISO && (g.status === 'menunggu' || g.status === 'bertemu')).reverse();
+        
     if (activeList.length === 0) { emptyState.classList.remove('hidden'); grid.classList.add('hidden'); return; }
     emptyState.classList.add('hidden'); grid.classList.remove('hidden');
 
@@ -513,7 +553,11 @@ function renderActiveGuestsGrid() {
 function renderKepsekDashboard() {
     const grid = document.getElementById('kepsek-guests-grid'); const emptyState = document.getElementById('kepsek-empty-state');
     if(!grid) return; grid.innerHTML = "";
-    const activeList = Object.keys(guestsDatabase).map(code => ({ code, ...guestsDatabase[code] })).filter(g => g.status === 'menunggu' || g.status === 'bertemu').reverse();
+    
+    const todayISO = new Date().toISOString().split('T')[0];
+    const activeList = Object.keys(guestsDatabase).map(code => ({ code, ...guestsDatabase[code] }))
+        .filter(g => g.date === todayISO && (g.status === 'menunggu' || g.status === 'bertemu')).reverse();
+        
     if (activeList.length === 0) { emptyState.classList.remove('hidden'); grid.classList.add('hidden'); return; }
     emptyState.classList.add('hidden'); grid.classList.remove('hidden');
 
