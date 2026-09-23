@@ -179,7 +179,6 @@ function renderMobileNav() {
 window.toggleLoginAction = function(btn) { if(btn) triggerIconAnimation(btn); if(currentUserRole === 'guest') switchAppView('view-login'); else processLogout(); };
 renderMobileNav(); setTimeout(updateIndicators, 100);
 
-
 // =========================================================
 // GRAFIK BAR BULANAN & PIE CHART STATUS
 // =========================================================
@@ -210,7 +209,7 @@ function createPieChartConfig() {
             labels: ['Selesai', 'Di Ruangan', 'Menunggu', 'Batal'],
             datasets: [{
                 data: [0, 0, 0, 0],
-                backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b', '#ef4444'], // Hijau, Biru, Kuning, Merah
+                backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b', '#ef4444'],
                 borderWidth: 0, hoverOffset: 4
             }]
         },
@@ -445,64 +444,67 @@ window.retakePhoto = function() {
 function stopCamera() { if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; } }
 
 // =========================================================
-// SALIN KODE TIKET & UPDATE STATUS (VERSI SUPER FALLBACK)
+// SALIN KODE TIKET (VERSI GLOBAL STANDAR TERBARU)
 // =========================================================
 window.copyTicketCode = function(btn) {
-    // Pastikan kode terambil tanpa spasi
     const codeText = document.getElementById('ticket-code').innerText.trim();
     
-    // Fungsi untuk memutar animasi centang hijau
+    // Fungsi animasi kalau sukses ngopi
     const showSuccessAnimation = () => {
         const icon = btn.querySelector('i');
-        icon.setAttribute('data-lucide', 'check-circle');
-        btn.classList.replace('text-slate-300', 'text-emerald-400');
-        lucide.createIcons();
-        setTimeout(() => {
-            icon.setAttribute('data-lucide', 'copy');
-            btn.classList.replace('text-emerald-400', 'text-slate-300');
+        if (icon) {
+            icon.setAttribute('data-lucide', 'check-circle');
+            btn.classList.remove('text-slate-300');
+            btn.classList.add('text-emerald-400');
             lucide.createIcons();
-        }, 2000);
+            setTimeout(() => {
+                icon.setAttribute('data-lucide', 'copy');
+                btn.classList.remove('text-emerald-400');
+                btn.classList.add('text-slate-300');
+                lucide.createIcons();
+            }, 2000);
+        }
     };
 
-    // Fungsi Gaib Anti-Blokir
-    const fallbackCopyText = (text) => {
-        const input = document.createElement("input");
-        input.value = text;
+    // Fungsi Fallback (Metode Jadul tapi Paling Kuat)
+    function fallbackCopy(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
         
-        // Taruh di layar tapi bikin transparan (browser tidak akan curiga)
-        input.style.position = "absolute";
-        input.style.opacity = "0";
-        input.style.top = "50%";
-        input.style.left = "50%";
+        // Letakkan di pojok paling atas layar agar tidak nge-scroll, tapi jangan di luar layar banget
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0"; // Transparan
+        document.body.appendChild(textArea);
         
-        document.body.appendChild(input);
-        
-        // Fokus dan seleksi teks
-        input.focus();
-        input.select();
-        input.setSelectionRange(0, 99999); 
+        textArea.focus();
+        textArea.select();
         
         try {
             const successful = document.execCommand('copy');
             if (successful) {
                 showSuccessAnimation();
             } else {
-                alert("Gagal menyalin. Silakan blok tulisan SMAN1-XXXX lalu salin secara manual.");
+                alert("Browser memblokir fitur salin. Silakan blok teks kode secara manual.");
             }
         } catch (err) {
-            alert("Browser Anda memblokir fungsi salin otomatis.");
+            alert("Browser memblokir fitur salin. Silakan blok teks kode secara manual.");
         }
-        
-        document.body.removeChild(input);
-    };
+        document.body.removeChild(textArea);
+    }
 
-    // Coba metode modern dulu, kalau gagal langsung pakai fallback
+    // Coba metode modern dulu
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(codeText)
-            .then(showSuccessAnimation)
-            .catch(() => fallbackCopyText(codeText));
+        navigator.clipboard.writeText(codeText).then(() => {
+            showSuccessAnimation();
+        }).catch(() => {
+            // Kalau modern gagal (diblok browser kayak di Edge kamu), pakai metode jadul
+            fallbackCopy(codeText);
+        });
     } else {
-        fallbackCopyText(codeText);
+        // Kalau browsernya nggak support metode modern sama sekali
+        fallbackCopy(codeText);
     }
 };
 
