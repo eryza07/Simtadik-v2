@@ -213,7 +213,7 @@
             <div id="view-admin-overview" class="app-view hidden fade-in max-w-[1400px] mx-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     <div class="lg:col-span-8 space-y-6">
-                        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white p-6 shadow-sm border border-slate-800"><div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-500 via-transparent to-transparent pointer-events-none"></div><div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4"><div class="flex items-center gap-4"><div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center font-extrabold text-xl shadow-inner">TU</div><div><h2 class="text-xl md:text-2xl font-black tracking-tight">Petugas TU - SMAN 1 Kandangan</h2><div class="flex flex-wrap items-center gap-2 text-xs text-emerald-100 mt-1"><span class="font-mono bg-white/10 px-2 py-0.5 rounded-md font-semibold text-emerald-300">POS-01</span><span>•</span><span class="text-emerald-400 font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Monitor Aktif</span></div></div></div></div></div>
+                        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white p-6 shadow-sm border border-slate-800"><div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-500 via-transparent to-transparent pointer-events-none"></div><div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4"><div class="flex items-center gap-4"><div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center font-extrabold text-xl shadow-inner">TU</div><div><h2 class="text-xl md:text-2xl font-black tracking-tight">Petugas TU - SMAN 1 Kandangan</h2><div class="flex flex-wrap items-center gap-2 text-xs text-emerald-100 mt-1"><span class="font-mono bg-white/10 px-2 py-0.5 rounded-md font-semibold text-emerald-300">POS-01</span><span>•</span><span class="text-emerald-400 font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Monitor Aktif</span></div></div></div></div></div>
                         <div>
                             <div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-slate-900 tracking-tight">Pantauan Kilat Harian</h3><span class="text-[11px] font-semibold bg-slate-100 text-slate-600 px-3 py-1 rounded-full border border-slate-200/80" id="current-date-badge">Hari Ini</span></div>
                             <div class="grid grid-cols-3 gap-3 md:gap-4">
@@ -222,7 +222,6 @@
                                 <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col justify-center"><p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Selesai Hari Ini</p><h3 id="stat-checkout-count" class="text-2xl md:text-3xl font-black text-green-500 mt-1">0</h3></div>
                             </div>
                         </div>
-                        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm"><div class="flex items-center justify-between mb-4"><h4 class="font-bold text-sm text-slate-900">Grafik Pendaftar Harian</h4><i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-400"></i></div><div class="w-full h-[200px]"><canvas id="visitorChartOverview"></canvas></div></div>
                         <div class="mt-6"><h3 class="text-lg font-bold text-slate-900 tracking-tight mb-4">Antrean Tamu Aktif Saat Ini</h3><div id="active-guests-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div><div id="empty-active-state" class="bg-white rounded-2xl p-8 border border-dashed border-slate-200 text-center"><div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400"><i data-lucide="inbox"></i></div><p class="font-bold text-sm text-slate-700">Belum Ada Tamu Aktif</p></div></div>
                     </div>
                     <div class="lg:col-span-4 space-y-6">
@@ -232,13 +231,40 @@
                 </div>
             </div>
 
-            <!-- VIEW 6: TAB STATISTIK & ANALITIK -->
+            <!-- VIEW 6: TAB STATISTIK & ANALITIK (DIUPDATE GRAFIK BAR & PIE) -->
             <div id="view-admin-statistik" class="app-view hidden fade-in max-w-[1400px] mx-auto">
                 <div class="flex items-center justify-between mb-6"><div><h2 class="text-2xl font-black text-slate-900 tracking-tight">Statistik & Analisis Jadwal</h2><p class="text-xs text-slate-400">Pantauan grafik data pengunjung dan kalender jadwal mingguan.</p></div></div>
+                
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mb-6">
-                    <div class="lg:col-span-4 space-y-6"><div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex items-center justify-between"><div><p class="text-xs font-bold text-slate-500 mb-1">Total Pendaftar</p><div class="flex items-baseline gap-1 mt-2"><h4 class="text-4xl font-black text-slate-900" id="stat-total-tamu">0</h4></div></div><div class="relative w-20 h-20 shrink-0"><svg class="w-full h-full" viewBox="0 0 36 36"><path class="text-slate-100" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="donut-progress" class="donut-ring text-emerald-500" stroke-width="4" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg><div class="absolute inset-0 flex items-center justify-center font-black text-xs text-slate-800" id="donut-pct">0%</div></div></div></div>
-                    <div class="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm h-full flex flex-col"><div class="flex items-center justify-between mb-4"><h4 class="font-bold text-sm text-slate-900">Grafik Kategori Pendaftar</h4><i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-400"></i></div><div class="w-full flex-1 min-h-[160px]"><canvas id="visitorChartAnalitik"></canvas></div></div>
+                    <!-- KOTAK KIRI: PIE CHART TOTAL PENDAFTAR -->
+                    <div class="lg:col-span-4 space-y-6">
+                        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between h-full min-h-[260px]">
+                            <div class="flex items-center justify-between mb-2">
+                                <div><p class="text-xs font-bold text-slate-500">Total Pendaftar Keseluruhan</p><h4 class="text-4xl font-black text-slate-900 mt-1" id="stat-total-tamu">0</h4></div>
+                            </div>
+                            <div class="w-full flex-1 relative flex justify-center items-center h-[140px]">
+                                <canvas id="visitorChartPie"></canvas>
+                                <!-- Teks persentase di tengah donat -->
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+                                    <span class="text-[10px] font-bold text-slate-400">Tingkat Selesai</span>
+                                    <span class="text-lg font-black text-emerald-600" id="donut-pct">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- KOTAK KANAN: BAR CHART BULANAN -->
+                    <div class="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm h-full flex flex-col min-h-[260px]">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-sm text-slate-900">Grafik Kategori Pendaftar (6 Bulan Terakhir)</h4>
+                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-400"></i>
+                        </div>
+                        <div class="w-full flex-1 min-h-[180px]">
+                            <canvas id="visitorChartAnalitik"></canvas>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm mt-6"><div class="flex items-center justify-between mb-4"><div><h4 class="font-bold text-sm text-slate-900">Kalender Jadwal Kunjungan Kepala Sekolah</h4><p class="text-[11px] text-slate-400">Tabel jadwal harian, jam pertemuan, dan identitas instansi tamu.</p></div><i data-lucide="calendar-days" class="w-5 h-5 text-slate-400"></i></div><div class="overflow-x-auto hide-scroll"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 text-slate-500 border-b border-slate-100"><tr><th class="px-4 py-3 font-bold">Hari & Tanggal</th><th class="px-4 py-3 font-bold text-center">Rencana Jam Tiba</th><th class="px-4 py-3 font-bold">Identitas Tamu</th><th class="px-4 py-3 font-bold">Keperluan</th><th class="px-4 py-3 font-bold text-center">Status</th></tr></thead><tbody id="analytics-schedule-body" class="divide-y divide-slate-100"></tbody></table></div></div>
             </div>
 
