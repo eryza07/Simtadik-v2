@@ -7,7 +7,7 @@ lucide.createIcons();
 
 const guestsDatabase = {};
 let currentUserRole = 'guest'; 
-let suratJalanFile = null; // Menyimpan Base64 Surat Jalan
+let suratJalanFile = null; 
 
 let chartOverview = null;
 let chartAnalitik = null;
@@ -106,11 +106,11 @@ window.silentAddNotification = function(title, message) {
     if(empty) empty.classList.add('hidden');
     const item = document.createElement('div');
     item.className = "p-3 hover:bg-slate-50 rounded-xl transition cursor-pointer border border-transparent hover:border-slate-100 flex gap-3 fade-in";
-    item.innerHTML = `<div class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5"><i data-lucide="bell" class="w-4 h-4 pointer-events-none"></i></div><div><h5 class="text-xs font-bold text-slate-900">${title}</h5><p class="text-[10px] text-slate-500 mt-0.5 line-clamp-2">${message}</p><span class="text-[9px] font-bold text-slate-400 mt-1 block">${timeStr}</span></div>`;
+    item.innerHTML = `<div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5"><i data-lucide="bell" class="w-4 h-4 pointer-events-none"></i></div><div><h5 class="text-xs font-bold text-slate-900">${title}</h5><p class="text-[10px] text-slate-500 mt-0.5 line-clamp-2">${message}</p><span class="text-[9px] font-bold text-slate-400 mt-1 block">${timeStr}</span></div>`;
     list.prepend(item); lucide.createIcons();
     
     const dotHeader = document.getElementById('header-notif-dot'); if(dotHeader) dotHeader.classList.remove('hidden');
-    document.querySelectorAll('.nav-red-dot').forEach(dot => dot.classList.remove('hidden'));
+    document.querySelectorAll('.nav-green-dot').forEach(dot => dot.classList.remove('hidden'));
 
     if ("Notification" in window && Notification.permission === "granted") { new Notification(title, { body: message, icon: "logo.png" }); }
 }
@@ -146,28 +146,45 @@ window.addEventListener('resize', () => { setTimeout(updateIndicators, 100); });
 
 window.switchAppView = function(targetId) {
     currentActiveView = targetId;
-    if (currentUserRole === 'admin' && (targetId === 'view-admin-overview' || targetId === 'view-admin-verify')) { document.querySelectorAll('.nav-red-dot').forEach(dot => dot.classList.add('hidden')); }
+    if (currentUserRole === 'admin' && (targetId === 'view-admin-overview' || targetId === 'view-admin-verify')) { document.querySelectorAll('.nav-green-dot').forEach(dot => dot.classList.add('hidden')); }
     document.querySelectorAll('.app-view').forEach(view => { view.classList.remove('block', 'flex'); view.classList.add('hidden'); });
     const target = document.getElementById(targetId); if (!target) return; target.classList.remove('hidden');
     if (['view-success', 'view-track', 'view-login'].includes(targetId)) target.classList.add('flex'); else target.classList.add('block');
-    document.querySelectorAll('.nav-tab-btn').forEach(btn => { if (btn.getAttribute('data-target') === targetId) { btn.classList.add('text-rose-600'); btn.classList.remove('text-slate-400', 'hover:text-slate-700'); btn.querySelector('span.tracking-tight').classList.replace('font-semibold', 'font-bold'); } else { btn.classList.remove('text-rose-600'); btn.classList.add('text-slate-400', 'hover:text-slate-700'); btn.querySelector('span.tracking-tight').classList.replace('font-bold', 'font-semibold'); } });
-    document.querySelectorAll('.m-nav-btn, .m-admin-btn').forEach(btn => { if(btn.getAttribute('data-target') === targetId) { btn.classList.add('text-rose-600'); btn.classList.remove('text-slate-400'); btn.querySelector('span').classList.replace('font-medium', 'font-bold'); } else { btn.classList.remove('text-rose-600'); btn.classList.add('text-slate-400'); btn.querySelector('span').classList.replace('font-bold', 'font-medium'); } });
+    
+    document.querySelectorAll('.nav-tab-btn').forEach(btn => { 
+        if (btn.getAttribute('data-target') === targetId) { 
+            btn.classList.add('text-emerald-600'); btn.classList.remove('text-slate-400', 'hover:text-emerald-700'); 
+            btn.querySelector('span.tracking-tight').classList.replace('font-semibold', 'font-bold'); 
+        } else { 
+            btn.classList.remove('text-emerald-600'); btn.classList.add('text-slate-400', 'hover:text-emerald-700'); 
+            btn.querySelector('span.tracking-tight').classList.replace('font-bold', 'font-semibold'); 
+        } 
+    });
+    document.querySelectorAll('.m-nav-btn, .m-admin-btn').forEach(btn => { 
+        if(btn.getAttribute('data-target') === targetId) { 
+            btn.classList.add('text-emerald-600'); btn.classList.remove('text-slate-400'); 
+            btn.querySelector('span').classList.replace('font-medium', 'font-bold'); 
+        } else { 
+            btn.classList.remove('text-emerald-600'); btn.classList.add('text-slate-400'); 
+            btn.querySelector('span').classList.replace('font-bold', 'font-medium'); 
+        } 
+    });
     setTimeout(updateIndicators, 50); 
 }
 
 function bindNavEvents() { document.querySelectorAll('.nav-tab-btn, .m-nav-btn, .m-admin-btn').forEach(btn => { btn.addEventListener('click', function () { triggerIconAnimation(this); switchAppView(this.getAttribute('data-target')); }); }); }
 function renderMobileNav() {
     const nav = document.getElementById('mobile-bottom-nav');
-    if (currentUserRole === 'guest') { nav.innerHTML = `<div id="mobile-sliding-indicator" class="sliding-indicator absolute top-0 h-[3px] bg-rose-600 rounded-b-full opacity-0 pointer-events-none z-10" style="left: 0; width: 0;"></div><button type="button" class="m-nav-btn flex-1 flex flex-col items-center justify-center h-full text-rose-600 cursor-pointer" data-target="view-guest-form"><i data-lucide="user-plus" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-bold pointer-events-none">Buku Tamu</span></button><button type="button" class="m-nav-btn flex-1 flex flex-col items-center justify-center h-full text-slate-400 cursor-pointer" data-target="view-track"><i data-lucide="search" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Cek Tiket</span></button><button type="button" class="flex-1 flex flex-col items-center justify-center h-full text-slate-400 cursor-pointer" onclick="toggleLoginAction(this)"><i data-lucide="lock" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Login TU</span></button>`; } 
-    else if (currentUserRole === 'admin') { nav.innerHTML = `<div id="mobile-sliding-indicator" class="sliding-indicator absolute top-0 h-[3px] bg-rose-600 rounded-b-full opacity-0 pointer-events-none z-10" style="left: 0; width: 0;"></div><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-rose-600 relative cursor-pointer" data-target="view-admin-overview"><div class="relative pointer-events-none"><i data-lucide="home" class="w-5 h-5 mb-0.5"></i><span class="nav-red-dot hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white red-dot-pulse pointer-events-none"></span></div><span class="text-[9px] font-bold pointer-events-none">Beranda</span></button><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-slate-400 cursor-pointer" data-target="view-admin-statistik"><i data-lucide="pie-chart" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Analitik</span></button><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-slate-400 relative cursor-pointer" data-target="view-admin-verify"><div class="relative pointer-events-none"><i data-lucide="scan" class="w-5 h-5 mb-0.5"></i><span class="nav-red-dot hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white red-dot-pulse pointer-events-none"></span></div><span class="text-[9px] font-medium pointer-events-none">Verifikasi</span></button><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-slate-400 cursor-pointer" data-target="view-admin-history"><i data-lucide="book-open" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Riwayat</span></button><button type="button" class="flex-1 flex flex-col items-center justify-center h-full text-red-500 cursor-pointer" onclick="processLogout()"><i data-lucide="log-out" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Keluar</span></button>`; } 
-    else if (currentUserRole === 'kepsek') { nav.innerHTML = `<div id="mobile-sliding-indicator" class="sliding-indicator absolute top-0 h-[3px] bg-emerald-600 rounded-b-full opacity-0 pointer-events-none z-10" style="left: 0; width: 0;"></div><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-emerald-600 cursor-pointer" data-target="view-kepsek-overview"><i data-lucide="monitor" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-bold pointer-events-none">Layar Pimpinan</span></button><button type="button" class="flex-1 flex flex-col items-center justify-center h-full text-red-500 cursor-pointer" onclick="processLogout()"><i data-lucide="log-out" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Keluar</span></button>`; }
+    if (currentUserRole === 'guest') { nav.innerHTML = `<div id="mobile-sliding-indicator" class="sliding-indicator absolute top-0 h-[3px] bg-emerald-600 rounded-b-full opacity-0 pointer-events-none z-10" style="left: 0; width: 0;"></div><button type="button" class="m-nav-btn flex-1 flex flex-col items-center justify-center h-full text-emerald-600 cursor-pointer" data-target="view-guest-form"><i data-lucide="user-plus" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-bold pointer-events-none">Buku Tamu</span></button><button type="button" class="m-nav-btn flex-1 flex flex-col items-center justify-center h-full text-slate-400 cursor-pointer" data-target="view-track"><i data-lucide="search" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Cek Tiket</span></button><button type="button" class="flex-1 flex flex-col items-center justify-center h-full text-slate-400 cursor-pointer" onclick="toggleLoginAction(this)"><i data-lucide="lock" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Login TU</span></button>`; } 
+    else if (currentUserRole === 'admin') { nav.innerHTML = `<div id="mobile-sliding-indicator" class="sliding-indicator absolute top-0 h-[3px] bg-emerald-600 rounded-b-full opacity-0 pointer-events-none z-10" style="left: 0; width: 0;"></div><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-emerald-600 relative cursor-pointer" data-target="view-admin-overview"><div class="relative pointer-events-none"><i data-lucide="home" class="w-5 h-5 mb-0.5"></i><span class="nav-green-dot hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white green-dot-pulse pointer-events-none"></span></div><span class="text-[9px] font-bold pointer-events-none">Beranda</span></button><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-slate-400 cursor-pointer" data-target="view-admin-statistik"><i data-lucide="pie-chart" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Analitik</span></button><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-slate-400 relative cursor-pointer" data-target="view-admin-verify"><div class="relative pointer-events-none"><i data-lucide="scan" class="w-5 h-5 mb-0.5"></i><span class="nav-green-dot hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white green-dot-pulse pointer-events-none"></span></div><span class="text-[9px] font-medium pointer-events-none">Verifikasi</span></button><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-slate-400 cursor-pointer" data-target="view-admin-history"><i data-lucide="book-open" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Riwayat</span></button><button type="button" class="flex-1 flex flex-col items-center justify-center h-full text-slate-500 cursor-pointer" onclick="processLogout()"><i data-lucide="log-out" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Keluar</span></button>`; } 
+    else if (currentUserRole === 'kepsek') { nav.innerHTML = `<div id="mobile-sliding-indicator" class="sliding-indicator absolute top-0 h-[3px] bg-emerald-600 rounded-b-full opacity-0 pointer-events-none z-10" style="left: 0; width: 0;"></div><button type="button" class="m-admin-btn flex-1 flex flex-col items-center justify-center h-full text-emerald-600 cursor-pointer" data-target="view-kepsek-overview"><i data-lucide="monitor" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-bold pointer-events-none">Layar Pimpinan</span></button><button type="button" class="flex-1 flex flex-col items-center justify-center h-full text-slate-500 cursor-pointer" onclick="processLogout()"><i data-lucide="log-out" class="w-5 h-5 mb-0.5 pointer-events-none"></i><span class="text-[9px] font-medium pointer-events-none">Keluar</span></button>`; }
     lucide.createIcons(); bindNavEvents();
 }
 window.toggleLoginAction = function(btn) { if(btn) triggerIconAnimation(btn); if(currentUserRole === 'guest') switchAppView('view-login'); else processLogout(); };
 renderMobileNav(); setTimeout(updateIndicators, 100);
 
 // =========================================================
-// GRAFIK
+// GRAFIK (TEMA HIJAU)
 // =========================================================
 function createChartConfig() { 
     return { 
@@ -177,7 +194,7 @@ function createChartConfig() {
             datasets: [{ 
                 label: 'Jumlah Tamu', 
                 data: [0, 0, 0], 
-                backgroundColor: ['#f43f5e', '#3b82f6', '#f59e0b'], 
+                backgroundColor: ['#10b981', '#064e3b', '#a3e635'], // Hijau (Siswa), Hijau Tua (Dinas), Hijau Muda/Lime (Umum)
                 borderWidth: 0,
                 hoverOffset: 6
             }] 
@@ -229,7 +246,7 @@ window.executeSafeLogin = async function() {
     else if (roleValid === 'admin') { currentUserRole = 'admin'; document.getElementById('admin-nav-group').classList.remove('hidden'); document.getElementById('admin-nav-group').classList.add('flex'); switchAppView('view-admin-overview'); }
 
     document.getElementById('header-notif-container').classList.remove('hidden');
-    const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-rose-500', 'bg-slate-800'); btnAction.classList.replace('hover:bg-rose-600', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-rose-500/25', 'shadow-slate-800/25');
+    const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-emerald-600', 'bg-slate-800'); btnAction.classList.replace('hover:bg-emerald-700', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-emerald-600/25', 'shadow-slate-800/25');
     document.getElementById('sidebar-icon').setAttribute('data-lucide', 'log-out'); document.getElementById('sidebar-text').innerText = "Keluar";
 
     lucide.createIcons(); renderMobileNav(); refreshDashboardMetrics(); document.getElementById('username-input').value = ""; document.getElementById('password-input').value = "";
@@ -239,10 +256,10 @@ window.executeSafeLogin = async function() {
 window.processLogout = async function() {
     await supabaseClient.auth.signOut();
     currentUserRole = 'guest'; document.getElementById('admin-nav-group').classList.add('hidden'); document.getElementById('admin-nav-group').classList.remove('flex'); document.getElementById('kepsek-nav-group').classList.add('hidden'); document.getElementById('kepsek-nav-group').classList.remove('flex'); document.getElementById('guest-nav-group').classList.remove('hidden'); document.getElementById('guest-nav-group').classList.add('flex'); document.getElementById('header-notif-container').classList.add('hidden'); document.getElementById('notif-dropdown').classList.add('hidden');
-    const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-slate-800', 'bg-rose-500'); btnAction.classList.replace('hover:bg-slate-700', 'hover:bg-rose-600'); btnAction.classList.replace('shadow-slate-800/25', 'shadow-rose-500/25');
+    const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-slate-800', 'bg-emerald-600'); btnAction.classList.replace('hover:bg-slate-700', 'hover:bg-emerald-700'); btnAction.classList.replace('shadow-slate-800/25', 'shadow-emerald-600/25');
     document.getElementById('sidebar-icon').setAttribute('data-lucide', 'lock'); document.getElementById('sidebar-text').innerText = "Login";
     lucide.createIcons(); renderMobileNav(); switchAppView('view-guest-form'); 
-    const dotHeader = document.getElementById('header-notif-dot'); if(dotHeader) dotHeader.classList.add('hidden'); document.querySelectorAll('.nav-red-dot').forEach(dot => dot.classList.add('hidden'));
+    const dotHeader = document.getElementById('header-notif-dot'); if(dotHeader) dotHeader.classList.add('hidden'); document.querySelectorAll('.nav-green-dot').forEach(dot => dot.classList.add('hidden'));
     const btnNotif = document.getElementById('btn-enable-notif'); if(btnNotif) btnNotif.classList.add('hidden');
 };
 
@@ -255,7 +272,6 @@ document.getElementById('kategori-select')?.addEventListener('change', function 
     const inputKelas = document.getElementById('input-kelas');
     const inputSurat = document.getElementById('input-surat');
     
-    // Reset kondisi tampilan
     kelasCont.classList.add('hidden');
     suratCont.classList.add('hidden');
     inputKelas.removeAttribute('required');
@@ -280,9 +296,7 @@ window.handleSuratUpload = function(event) {
         nameLabel.classList.add('font-bold');
         
         const reader = new FileReader();
-        reader.onload = function(e) {
-            suratJalanFile = e.target.result;
-        }
+        reader.onload = function(e) { suratJalanFile = e.target.result; }
         reader.readAsDataURL(file);
     } else {
         nameLabel.innerText = "Format PDF / Foto";
@@ -362,9 +376,9 @@ window.changeGuestStatus = function(code, newStatus) {
       
         const histBadge = document.getElementById(`hist-badge-${code}`); const histOut = document.getElementById(`hist-out-${code}`);
         if (histBadge) {
-            if (newStatus === 'bertemu') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 w-max block mx-auto text-center"; histBadge.innerText = "Sedang Bertemu"; } 
-            else if (newStatus === 'selesai') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 w-max block mx-auto text-center"; histBadge.innerText = "Selesai"; if (histOut) histOut.innerText = `Out: ${data.outTime}`; } 
-            else if (newStatus === 'ditolak') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 w-max block mx-auto text-center"; histBadge.innerText = "Dibatalkan"; if (histOut) histOut.innerText = "Out: Dibatalkan"; }
+            if (newStatus === 'bertemu') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 w-max block mx-auto text-center"; histBadge.innerText = "Sedang Bertemu"; } 
+            else if (newStatus === 'selesai') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 w-max block mx-auto text-center"; histBadge.innerText = "Selesai"; if (histOut) histOut.innerText = `Out: ${data.outTime}`; } 
+            else if (newStatus === 'ditolak') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 w-max block mx-auto text-center"; histBadge.innerText = "Dibatalkan"; if (histOut) histOut.innerText = "Out: Dibatalkan"; }
         }
         
         refreshDashboardMetrics();
@@ -396,7 +410,7 @@ function refreshDashboardMetrics() {
     if(document.getElementById('stat-bertemu')) {
         document.getElementById('stat-bertemu').innerText = bertemu; document.getElementById('stat-menunggu-ratio').innerText = menunggu; document.getElementById('stat-checkout-count').innerText = selesai;
         const roomBadge = document.getElementById('room-status-badge');
-        if (bertemu > 0) { roomBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-rose-100 text-rose-700"; roomBadge.innerText = "Terisi"; } 
+        if (bertemu > 0) { roomBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-700"; roomBadge.innerText = "Terisi"; } 
         else { roomBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-slate-100 text-slate-600"; roomBadge.innerText = "Kosong"; }
         renderActiveGuestsGrid();
     }
@@ -417,7 +431,7 @@ function renderActiveGuestsGrid() {
     activeList.forEach(guest => {
         const isBertemu = guest.status === 'bertemu'; const card = document.createElement('div');
         card.className = "bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between gap-3 hover:border-slate-300 transition fade-in";
-        card.innerHTML = `<div class="flex items-center gap-3 min-w-0"><div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0"><img src="${guest.photo}" alt="Foto" class="w-full h-full object-cover"></div><div class="min-w-0"><p class="text-[9px] font-mono font-bold text-slate-400 truncate">${guest.code}</p><h5 class="font-bold text-slate-900 text-sm truncate">${guest.name}</h5><p class="text-[11px] text-slate-400 truncate">${guest.instansi}</p></div></div><div class="flex flex-col items-end gap-2 shrink-0"><span class="px-2 py-0.5 rounded-md text-[9px] font-bold ${isBertemu ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">${isBertemu ? 'Di Ruangan' : 'Menunggu'}</span><button type="button" onclick="openDetailModal('${guest.code}')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition active:scale-90 shadow-sm relative z-20 cursor-pointer"><i data-lucide="eye" class="w-3 h-3 pointer-events-none"></i></button></div>`;
+        card.innerHTML = `<div class="flex items-center gap-3 min-w-0"><div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0"><img src="${guest.photo}" alt="Foto" class="w-full h-full object-cover"></div><div class="min-w-0"><p class="text-[9px] font-mono font-bold text-slate-400 truncate">${guest.code}</p><h5 class="font-bold text-slate-900 text-sm truncate">${guest.name}</h5><p class="text-[11px] text-slate-400 truncate">${guest.instansi}</p></div></div><div class="flex flex-col items-end gap-2 shrink-0"><span class="px-2 py-0.5 rounded-md text-[9px] font-bold ${isBertemu ? 'bg-emerald-100 text-emerald-700' : 'bg-teal-100 text-teal-700'}">${isBertemu ? 'Di Ruangan' : 'Menunggu'}</span><button type="button" onclick="openDetailModal('${guest.code}')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition active:scale-90 shadow-sm relative z-20 cursor-pointer"><i data-lucide="eye" class="w-3 h-3 pointer-events-none"></i></button></div>`;
         grid.appendChild(card);
     });
     lucide.createIcons();
@@ -433,7 +447,7 @@ function renderKepsekDashboard() {
     activeList.forEach(guest => {
         const isBertemu = guest.status === 'bertemu'; const card = document.createElement('div');
         card.className = `p-4 md:p-6 rounded-3xl border shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 transition fade-in ${isBertemu ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200/80 hover:border-slate-300'}`;
-        card.innerHTML = `<div class="flex items-center gap-4 min-w-0 w-full md:w-auto"><div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-slate-100 border-2 ${isBertemu ? 'border-emerald-300' : 'border-slate-200'} shrink-0"><img src="${guest.photo}" class="w-full h-full object-cover"></div><div class="min-w-0 flex-1"><p class="text-[10px] font-bold ${isBertemu ? 'text-emerald-600' : 'text-slate-400'} tracking-wider uppercase mb-0.5">${isBertemu ? 'Sedang Bertemu Anda' : 'Menunggu Panggilan'}</p><h5 class="font-black text-slate-900 text-base md:text-lg truncate">${guest.name}</h5><p class="text-xs text-slate-500 truncate">${guest.instansi} - ${guest.tujuan}</p></div></div><div class="flex gap-2 shrink-0 w-full md:w-auto justify-end">${!isBertemu ? `<button type="button" onclick="changeGuestStatus('${guest.code}', 'bertemu')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-xs font-bold transition active:scale-95 shadow-lg shadow-blue-500/25 flex-1 md:flex-none cursor-pointer">Panggil Masuk</button>` : ''}${isBertemu ? `<button type="button" onclick="changeGuestStatus('${guest.code}', 'selesai')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-xs font-bold transition active:scale-95 shadow-lg shadow-emerald-500/25 flex-1 md:flex-none cursor-pointer"><i data-lucide="check-check" class="w-4 h-4 inline mr-1 pointer-events-none"></i>Selesaikan Pertemuan</button>` : ''}</div>`;
+        card.innerHTML = `<div class="flex items-center gap-4 min-w-0 w-full md:w-auto"><div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-slate-100 border-2 ${isBertemu ? 'border-emerald-300' : 'border-slate-200'} shrink-0"><img src="${guest.photo}" class="w-full h-full object-cover"></div><div class="min-w-0 flex-1"><p class="text-[10px] font-bold ${isBertemu ? 'text-emerald-600' : 'text-slate-400'} tracking-wider uppercase mb-0.5">${isBertemu ? 'Sedang Bertemu Anda' : 'Menunggu Panggilan'}</p><h5 class="font-black text-slate-900 text-base md:text-lg truncate">${guest.name}</h5><p class="text-xs text-slate-500 truncate">${guest.instansi} - ${guest.tujuan}</p></div></div><div class="flex gap-2 shrink-0 w-full md:w-auto justify-end">${!isBertemu ? `<button type="button" onclick="changeGuestStatus('${guest.code}', 'bertemu')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-xs font-bold transition active:scale-95 shadow-lg shadow-emerald-500/25 flex-1 md:flex-none cursor-pointer">Panggil Masuk</button>` : ''}${isBertemu ? `<button type="button" onclick="changeGuestStatus('${guest.code}', 'selesai')" class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-xs font-bold transition active:scale-95 shadow-lg shadow-green-500/25 flex-1 md:flex-none cursor-pointer"><i data-lucide="check-check" class="w-4 h-4 inline mr-1 pointer-events-none"></i>Selesaikan Pertemuan</button>` : ''}</div>`;
         grid.appendChild(card);
     });
     lucide.createIcons();
@@ -446,10 +460,10 @@ function renderScheduleAnalytics() {
 
     sortedGuests.forEach(data => {
         const dateObj = new Date(data.date); const hari = dateObj.toLocaleDateString('id-ID', { weekday: 'long' }); const tgl = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-        let badgeClass = "bg-amber-100 text-amber-700"; if (data.status === 'bertemu') badgeClass = "bg-blue-100 text-blue-700"; if (data.status === 'selesai') badgeClass = "bg-emerald-100 text-emerald-700"; if (data.status === 'ditolak') badgeClass = "bg-rose-100 text-rose-700";
+        let badgeClass = "bg-teal-100 text-teal-700"; if (data.status === 'bertemu') badgeClass = "bg-emerald-100 text-emerald-700"; if (data.status === 'selesai') badgeClass = "bg-green-100 text-green-700"; if (data.status === 'ditolak') badgeClass = "bg-slate-100 text-slate-700";
         const jamKeluar = data.outTime !== '-' ? data.outTime : 'Selesai'; const rentangWaktu = `${data.planTime} - ${jamKeluar}`;
         const tr = document.createElement('tr'); tr.className = "border-b border-slate-100 hover:bg-slate-50/50 transition-colors";
-        tr.innerHTML = `<td class="px-4 py-3"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-[10px] uppercase border border-slate-200 shadow-sm">${hari.substring(0,3)}</div><div><p class="font-bold text-slate-900">${hari}</p><p class="text-[10px] text-slate-500">${tgl}</p></div></div></td><td class="px-4 py-3 font-mono text-rose-600 font-bold text-xs text-center"><div class="bg-rose-50 px-2 py-1 rounded-lg border border-rose-100 inline-block">${rentangWaktu}</div></td><td class="px-4 py-3"><p class="font-bold text-slate-900">${data.name}</p><p class="text-[10px] text-slate-500">${data.instansi} (${data.kategori})</p></td><td class="px-4 py-3 text-xs text-slate-600 max-w-[150px] truncate" title="${data.tujuan}">${data.tujuan}</td><td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded-md text-[9px] font-bold ${badgeClass}">${data.status.toUpperCase()}</span></td>`;
+        tr.innerHTML = `<td class="px-4 py-3"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-[10px] uppercase border border-slate-200 shadow-sm">${hari.substring(0,3)}</div><div><p class="font-bold text-slate-900">${hari}</p><p class="text-[10px] text-slate-500">${tgl}</p></div></div></td><td class="px-4 py-3 font-mono text-emerald-600 font-bold text-xs text-center"><div class="bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 inline-block">${rentangWaktu}</div></td><td class="px-4 py-3"><p class="font-bold text-slate-900">${data.name}</p><p class="text-[10px] text-slate-500">${data.instansi} (${data.kategori})</p></td><td class="px-4 py-3 text-xs text-slate-600 max-w-[150px] truncate" title="${data.tujuan}">${data.tujuan}</td><td class="px-4 py-3 text-center"><span class="px-2 py-1 rounded-md text-[9px] font-bold ${badgeClass}">${data.status.toUpperCase()}</span></td>`;
         tbody.appendChild(tr);
     });
 }
@@ -465,7 +479,6 @@ window.resetGuestForm = function() {
     const timeInp = document.getElementById('guest-time');
     if (timeInp) { const now = new Date(); timeInp.value = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`; }
     
-    // Reset Kelas & Surat
     const kelasCont = document.getElementById('kelas-container');
     if (kelasCont) kelasCont.classList.add('hidden');
     const suratCont = document.getElementById('surat-container');
@@ -474,15 +487,9 @@ window.resetGuestForm = function() {
     const inputKelas = document.getElementById('input-kelas');
     if (inputKelas) inputKelas.removeAttribute('required');
     const inputSurat = document.getElementById('input-surat');
-    if (inputSurat) {
-        inputSurat.removeAttribute('required');
-        inputSurat.value = "";
-    }
+    if (inputSurat) { inputSurat.removeAttribute('required'); inputSurat.value = ""; }
     const suratName = document.getElementById('surat-file-name');
-    if (suratName) {
-        suratName.innerText = "Format PDF / Foto";
-        suratName.className = "text-slate-500 truncate w-3/4";
-    }
+    if (suratName) { suratName.innerText = "Format PDF / Foto"; suratName.className = "text-slate-500 truncate w-3/4"; }
     suratJalanFile = null;
 
     if (typeof stopCamera === 'function') stopCamera();
@@ -508,7 +515,6 @@ window.submitGuestForm = function() {
     const guestTimeInput = document.getElementById('guest-time').value; 
     const planTimeWIB = guestTimeInput ? guestTimeInput + ' WIB' : '-';
     
-    // Logika Kategori Baru
     const kategoriSel = document.getElementById('kategori-select'); 
     const valKategori = kategoriSel.value;
     const textKategori = kategoriSel.options[kategoriSel.selectedIndex].text;
@@ -520,7 +526,6 @@ window.submitGuestForm = function() {
     } else if (valKategori === 'dinas') {
         subKategori = " (Via Surat Dinas)";
     }
-    
     const finalKategori = textKategori + subKategori;
     
     const tujuan = document.getElementById('guest-tujuan').value;
@@ -558,7 +563,7 @@ window.submitGuestForm = function() {
         kategori: finalKategori,
         tujuan: tujuan,
         photo: photoSrc,
-        // surat_jalan: suratJalanFile, // Nanti hapus // di depannya kalau tabel Supabase sudah ditambah kolom 'surat_jalan'
+        // surat_jalan: suratJalanFile, // Hapus // di depannya kalau tabel Supabase sudah ditambah kolom 'surat_jalan' bertipe TEXT
         date: guestDate,
         plan_time: planTimeWIB,
         status: 'menunggu',
@@ -588,7 +593,7 @@ document.getElementById('btn-change-schedule')?.addEventListener('click', () => 
 function appendHistoryRow(code) {
     const data = guestsDatabase[code]; const tbody = document.getElementById('history-table-body'); if (!tbody) return;
     const tr = document.createElement('tr'); tr.id = `hist-row-${code}`; tr.className = "hover:bg-slate-50/70 transition fade-in";
-    tr.innerHTML = `<td class="px-5 py-3.5"><p class="text-[10px] font-mono text-slate-400 font-bold">${code}</p><p class="font-bold text-slate-900">${data.name}</p><p class="text-[11px] text-slate-400">${data.instansi}</p></td><td class="px-5 py-3.5 text-slate-600">${data.displayDate} <br><span class="text-[10px] text-slate-400 font-mono">In: ${data.time} | <span id="hist-out-${code}">Out: -</span></span></td><td class="px-5 py-3.5"><span id="hist-badge-${code}" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 w-max block mx-auto text-center">Menunggu</span></td><td class="px-5 py-3.5 text-center"><button type="button" onclick="openDetailModal('${code}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition active:scale-90 shadow-sm relative z-20 cursor-pointer"><i data-lucide="user" class="w-4 h-4 pointer-events-none"></i></button></td>`;
+    tr.innerHTML = `<td class="px-5 py-3.5"><p class="text-[10px] font-mono text-slate-400 font-bold">${code}</p><p class="font-bold text-slate-900">${data.name}</p><p class="text-[11px] text-slate-400">${data.instansi}</p></td><td class="px-5 py-3.5 text-slate-600">${data.displayDate} <br><span class="text-[10px] text-slate-400 font-mono">In: ${data.time} | <span id="hist-out-${code}">Out: -</span></span></td><td class="px-5 py-3.5"><span id="hist-badge-${code}" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-100 text-teal-700 w-max block mx-auto text-center">Menunggu</span></td><td class="px-5 py-3.5 text-center"><button type="button" onclick="openDetailModal('${code}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition active:scale-90 shadow-sm relative z-20 cursor-pointer"><i data-lucide="user" class="w-4 h-4 pointer-events-none"></i></button></td>`;
     tbody.prepend(tr);
 }
 
@@ -596,10 +601,10 @@ window.openDetailModal = function (code) {
     const data = guestsDatabase[code]; if (!data) return; activeDetailCode = code;
     document.getElementById('detail-photo').src = data.photo; document.getElementById('detail-code').innerText = code; document.getElementById('detail-datetime').innerText = `${data.displayDate} - ${data.planTime}`; document.getElementById('detail-outtime').innerText = data.outTime; document.getElementById('detail-name').innerText = `${data.name} (${data.phone})`; document.getElementById('detail-instansi').innerText = `${data.instansi} (${data.kategori})`; document.getElementById('detail-tujuan').innerText = data.tujuan;
     const badge = document.getElementById('detail-status-badge'); const waitActions = document.getElementById('mdl-waiting-actions'); const btnSelesai = document.getElementById('btn-mdl-selesai');
-    if (data.status === 'menunggu') { badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700"; badge.innerText = "Menunggu Persetujuan"; waitActions.classList.remove('hidden'); btnSelesai.classList.add('hidden'); } 
-    else if (data.status === 'bertemu') { badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700"; badge.innerText = "Sedang Bertemu Kepsek"; waitActions.classList.add('hidden'); btnSelesai.classList.remove('hidden'); } 
-    else if (data.status === 'selesai') { badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700"; badge.innerText = "Selesai (Pulang)"; waitActions.classList.add('hidden'); btnSelesai.classList.add('hidden'); } 
-    else if (data.status === 'ditolak') { badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700"; badge.innerText = "Dibatalkan / Reschedule"; waitActions.classList.add('hidden'); btnSelesai.classList.add('hidden'); }
+    if (data.status === 'menunggu') { badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-700"; badge.innerText = "Menunggu Persetujuan"; waitActions.classList.remove('hidden'); btnSelesai.classList.add('hidden'); } 
+    else if (data.status === 'bertemu') { badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700"; badge.innerText = "Sedang Bertemu Kepsek"; waitActions.classList.add('hidden'); btnSelesai.classList.remove('hidden'); } 
+    else if (data.status === 'selesai') { badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700"; badge.innerText = "Selesai (Pulang)"; waitActions.classList.add('hidden'); btnSelesai.classList.add('hidden'); } 
+    else if (data.status === 'ditolak') { badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700"; badge.innerText = "Dibatalkan / Reschedule"; waitActions.classList.add('hidden'); btnSelesai.classList.add('hidden'); }
     const modal = document.getElementById('detail-modal'); const card = document.getElementById('detail-card');
     modal.classList.remove('hidden'); setTimeout(() => { card.classList.replace('scale-95', 'scale-100'); card.classList.replace('opacity-0', 'opacity-100'); }, 10);
 };
@@ -621,10 +626,10 @@ window.doTrackTicket = function() {
         document.getElementById('track-res-name').innerText = data.name; document.getElementById('track-res-date').innerText = `${data.displayDate} | Tiba: ${data.planTime}`;
         const statusEl = document.getElementById('track-res-status'); const dotEl = document.getElementById('track-res-dot'); const barEl = document.getElementById('track-color-bar');
 
-        if (data.status === 'menunggu') { statusEl.innerText = "Menunggu Persetujuan"; statusEl.className = "text-sm font-black text-amber-600"; dotEl.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"; barEl.className = "absolute top-0 right-0 w-2 h-full bg-amber-500"; } 
-        else if (data.status === 'bertemu') { statusEl.innerText = "Sedang Bertemu Kepsek"; statusEl.className = "text-sm font-black text-blue-600"; dotEl.className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"; barEl.className = "absolute top-0 right-0 w-2 h-full bg-blue-500"; } 
-        else if (data.status === 'selesai') { statusEl.innerText = "Selesai (Sudah Keluar)"; statusEl.className = "text-sm font-black text-emerald-600"; dotEl.className = "w-2.5 h-2.5 rounded-full bg-emerald-500"; barEl.className = "absolute top-0 right-0 w-2 h-full bg-emerald-500"; } 
-        else if (data.status === 'ditolak') { statusEl.innerText = "Dibatalkan / Reschedule"; statusEl.className = "text-sm font-black text-rose-600"; dotEl.className = "w-2.5 h-2.5 rounded-full bg-rose-500"; barEl.className = "absolute top-0 right-0 w-2 h-full bg-rose-500"; }
+        if (data.status === 'menunggu') { statusEl.innerText = "Menunggu Persetujuan"; statusEl.className = "text-sm font-black text-teal-600"; dotEl.className = "w-2.5 h-2.5 rounded-full bg-teal-500 animate-pulse"; barEl.className = "absolute top-0 right-0 w-2 h-full bg-teal-500"; } 
+        else if (data.status === 'bertemu') { statusEl.innerText = "Sedang Bertemu Kepsek"; statusEl.className = "text-sm font-black text-emerald-600"; dotEl.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"; barEl.className = "absolute top-0 right-0 w-2 h-full bg-emerald-500"; } 
+        else if (data.status === 'selesai') { statusEl.innerText = "Selesai (Sudah Keluar)"; statusEl.className = "text-sm font-black text-green-600"; dotEl.className = "w-2.5 h-2.5 rounded-full bg-green-500"; barEl.className = "absolute top-0 right-0 w-2 h-full bg-green-500"; } 
+        else if (data.status === 'ditolak') { statusEl.innerText = "Dibatalkan / Reschedule"; statusEl.className = "text-sm font-black text-slate-600"; dotEl.className = "w-2.5 h-2.5 rounded-full bg-slate-500"; barEl.className = "absolute top-0 right-0 w-2 h-full bg-slate-500"; }
     } else { document.getElementById('track-found').classList.add('hidden'); document.getElementById('track-not-found').classList.remove('hidden'); }
 };
 
@@ -641,16 +646,16 @@ window.executeVerification = function(code) {
         const msgDone = document.getElementById('v-res-msg-done'); const msgStatus = document.getElementById('v-res-msg-status');
         
         if (data.status === 'menunggu') { 
-            badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700"; badge.innerText = "Menunggu Persetujuan"; 
+            badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-teal-100 text-teal-700"; badge.innerText = "Menunggu Persetujuan"; 
             footer.classList.remove('hidden'); footer.classList.add('flex'); msgDone.classList.add('hidden'); waitActions.classList.remove('hidden'); meetActions.classList.add('hidden');
         } 
         else if (data.status === 'bertemu') { 
-            badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700"; badge.innerText = "Sedang Bertemu"; 
+            badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700"; badge.innerText = "Sedang Bertemu"; 
             footer.classList.remove('hidden'); footer.classList.add('flex'); msgDone.classList.add('hidden'); waitActions.classList.add('hidden'); meetActions.classList.remove('hidden');
         } 
         else {
-            if (data.status === 'selesai') { badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700"; badge.innerText = "Selesai (Pulang)"; msgStatus.innerText = "Selesai (Sudah Keluar)"; msgStatus.className = "text-emerald-600"; } 
-            else if (data.status === 'ditolak') { badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700"; badge.innerText = "Dibatalkan"; msgStatus.innerText = "Dibatalkan / Reschedule"; msgStatus.className = "text-rose-600"; }
+            if (data.status === 'selesai') { badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700"; badge.innerText = "Selesai (Pulang)"; msgStatus.innerText = "Selesai (Sudah Keluar)"; msgStatus.className = "text-green-600"; } 
+            else if (data.status === 'ditolak') { badge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700"; badge.innerText = "Dibatalkan"; msgStatus.innerText = "Dibatalkan / Reschedule"; msgStatus.className = "text-slate-600"; }
             footer.classList.add('hidden'); footer.classList.remove('flex'); msgDone.classList.remove('hidden'); waitActions.classList.add('hidden'); meetActions.classList.add('hidden');
         }
     } else { resultCard.classList.add('hidden'); notFound.classList.remove('hidden'); }
@@ -662,7 +667,7 @@ window.approveVerification = function() { try { if (codeToVerify) { changeGuestS
 window.finishVerification = function() { try { if (codeToVerify) { changeGuestStatus(codeToVerify, 'selesai'); } } catch(e) {} };
 
 // =========================================================
-// EXPORT CSV MURNI (TANPA PDF SAMA SEKALI)
+// EXPORT CSV MURNI
 // =========================================================
 window.exportToCSV = function() {
     let csv = "Kode Tiket,Tanggal Pertemuan,Rencana Jam Tiba,Nama Lengkap,Asal Instansi,Kategori,Keperluan,Status Akhir,Waktu Form Masuk,Waktu Keluar\n";
@@ -711,9 +716,9 @@ async function loadGuestsFromSupabase() {
         const histBadge = document.getElementById(`hist-badge-${row.code}`);
         const histOut = document.getElementById(`hist-out-${row.code}`);
         if (histBadge) {
-            if (row.status === 'bertemu') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 w-max block mx-auto text-center"; histBadge.innerText = "Sedang Bertemu"; }
-            else if (row.status === 'selesai') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 w-max block mx-auto text-center"; histBadge.innerText = "Selesai"; if (histOut) histOut.innerText = `Out: ${row.out_time}`; }
-            else if (row.status === 'ditolak') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 w-max block mx-auto text-center"; histBadge.innerText = "Dibatalkan"; if (histOut) histOut.innerText = "Out: Dibatalkan"; }
+            if (row.status === 'bertemu') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 w-max block mx-auto text-center"; histBadge.innerText = "Sedang Bertemu"; }
+            else if (row.status === 'selesai') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 w-max block mx-auto text-center"; histBadge.innerText = "Selesai"; if (histOut) histOut.innerText = `Out: ${row.out_time}`; }
+            else if (row.status === 'ditolak') { histBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 w-max block mx-auto text-center"; histBadge.innerText = "Dibatalkan"; if (histOut) histOut.innerText = "Out: Dibatalkan"; }
         }
     });
 
@@ -769,7 +774,7 @@ function applyRoleUI(role) {
     nav.classList.remove('hidden'); nav.classList.add('flex');
     document.getElementById('header-notif-container').classList.remove('hidden');
     const btnAction = document.getElementById('btn-sidebar-action');
-    btnAction.classList.replace('bg-rose-500', 'bg-slate-800'); btnAction.classList.replace('hover:bg-rose-600', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-rose-500/25', 'shadow-slate-800/25');
+    btnAction.classList.replace('bg-emerald-500', 'bg-slate-800'); btnAction.classList.replace('hover:bg-emerald-600', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-emerald-500/25', 'shadow-slate-800/25');
     document.getElementById('sidebar-icon').setAttribute('data-lucide', 'log-out'); document.getElementById('sidebar-text').innerText = "Keluar";
     renderMobileNav();
     switchAppView('view-' + role + '-overview');
