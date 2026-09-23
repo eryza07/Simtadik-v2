@@ -160,7 +160,7 @@
                 </div>
             </div>
 
-            <!-- VIEW 2: TIKET BERHASIL -->
+            <!-- VIEW 2: TIKET BERHASIL DENGAN TOMBOL COPY CODE -->
             <div id="view-success" class="app-view hidden fade-in flex-col justify-center h-full max-w-sm mx-auto">
                 <div class="text-center w-full">
                     <div class="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 no-print"><i data-lucide="check-circle" class="w-8 h-8"></i></div><h3 class="text-2xl font-black text-slate-900 mb-1 no-print">Pengajuan Berhasil!</h3><p class="text-slate-500 text-xs mb-6 no-print">Tunjukkan tangkapan layar (Screenshot) tiket ini ke Staf TU saat Anda tiba di sekolah.</p>
@@ -168,7 +168,18 @@
                         <div class="flex justify-between items-start mb-5 pb-5 border-b border-dashed border-slate-200"><div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tiket Masuk Tamu</p><h4 class="text-base font-extrabold text-slate-900">SMAN 1 Kandangan</h4></div><i data-lucide="ticket" class="w-6 h-6 text-emerald-500"></i></div>
                         <div class="mb-3"><p class="text-[10px] text-slate-400 uppercase font-bold">Nama Tamu</p><p id="ticket-name" class="font-bold text-slate-900 text-sm">-</p></div>
                         <div class="mb-5"><p class="text-[10px] text-slate-400 uppercase font-bold">Jadwal Pertemuan</p><p id="ticket-date-display" class="font-bold text-emerald-600 text-sm">-</p></div>
-                        <div class="bg-slate-950 p-4 rounded-2xl text-center"><p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Kode Pelacakan</p><p id="ticket-code" class="text-2xl font-black text-white tracking-widest font-mono">SMAN1-XXXX</p></div>
+                        
+                        <!-- KOTAK KODE & TOMBOL SALIN (COPY) -->
+                        <div class="bg-slate-950 p-4 rounded-2xl text-center relative">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-2">Kode Pelacakan</p>
+                            <div class="flex items-center justify-center gap-3">
+                                <p id="ticket-code" class="text-2xl font-black text-white tracking-widest font-mono">SMAN1-XXXX</p>
+                                <button type="button" onclick="copyTicketCode(this)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl transition active:scale-95 cursor-pointer shadow-inner" title="Salin Kode">
+                                    <i data-lucide="copy" class="w-4 h-4 pointer-events-none"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
                     </div>
                     <div class="flex gap-2 no-print">
                         <button type="button" onclick="finishGuestRegistration()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl px-4 py-3.5 text-sm transition cursor-pointer">Selesai & Tutup</button>
@@ -231,7 +242,7 @@
                 </div>
             </div>
 
-            <!-- VIEW 6: TAB STATISTIK & ANALITIK (DIUPDATE GRAFIK BAR & PIE) -->
+            <!-- VIEW 6: TAB STATISTIK & ANALITIK (DIUPDATE GRAFIK BAR BULANAN & PIE HARIAN) -->
             <div id="view-admin-statistik" class="app-view hidden fade-in max-w-[1400px] mx-auto">
                 <div class="flex items-center justify-between mb-6"><div><h2 class="text-2xl font-black text-slate-900 tracking-tight">Statistik & Analisis Jadwal</h2><p class="text-xs text-slate-400">Pantauan grafik data pengunjung dan kalender jadwal mingguan.</p></div></div>
                 
@@ -240,7 +251,7 @@
                     <div class="lg:col-span-4 space-y-6">
                         <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between h-full min-h-[260px]">
                             <div class="flex items-center justify-between mb-2">
-                                <div><p class="text-xs font-bold text-slate-500">Total Pendaftar Keseluruhan</p><h4 class="text-4xl font-black text-slate-900 mt-1" id="stat-total-tamu">0</h4></div>
+                                <div><p class="text-xs font-bold text-slate-500">Total Tamu Hari Ini</p><h4 class="text-4xl font-black text-slate-900 mt-1" id="stat-total-tamu">0</h4></div>
                             </div>
                             <div class="w-full flex-1 relative flex justify-center items-center h-[140px]">
                                 <canvas id="visitorChartPie"></canvas>
