@@ -9,8 +9,6 @@ const guestsDatabase = {};
 let currentUserRole = 'guest'; 
 let suratJalanFile = null; 
 
-let chartOverview = null;
-let chartAnalitik = null;
 let currentActiveView = 'view-guest-form';
 
 // =========================================================
@@ -183,40 +181,118 @@ function renderMobileNav() {
 window.toggleLoginAction = function(btn) { if(btn) triggerIconAnimation(btn); if(currentUserRole === 'guest') switchAppView('view-login'); else processLogout(); };
 renderMobileNav(); setTimeout(updateIndicators, 100);
 
+
 // =========================================================
-// GRAFIK (TEMA HIJAU)
+// GRAFIK BAR BULANAN & PIE CHART STATUS
 // =========================================================
-function createChartConfig() { 
+let chartPie = null;
+let chartAnalitik = null;
+
+// Konfigurasi Bar Chart Bulanan (Kanan)
+function createBarChartConfig() { 
     return { 
-        type: 'doughnut', 
+        type: 'bar', 
         data: { 
-            labels: ['Siswa/Murid', 'Dinas', 'Karyawan/Umum'], 
-            datasets: [{ 
-                label: 'Jumlah Tamu', 
-                data: [0, 0, 0], 
-                backgroundColor: ['#10b981', '#064e3b', '#a3e635'], // Hijau (Siswa), Hijau Tua (Dinas), Hijau Muda/Lime (Umum)
-                borderWidth: 0,
-                hoverOffset: 6
-            }] 
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'], 
+            datasets: [
+                { label: 'Siswa/Murid', data: [0,0,0,0,0,0], backgroundColor: '#10b981', borderRadius: 4 },
+                { label: 'Dinas', data: [0,0,0,0,0,0], backgroundColor: '#064e3b', borderRadius: 4 },
+                { label: 'Karyawan/Umum', data: [0,0,0,0,0,0], backgroundColor: '#a3e635', borderRadius: 4 }
+            ] 
         }, 
         options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            cutout: '65%', 
-            plugins: { 
-                legend: { 
-                    display: true, 
-                    position: 'bottom',
-                    labels: { padding: 15, usePointStyle: true, font: { size: 10, weight: 'bold' } }
-                } 
-            },
+            responsive: true, maintainAspectRatio: false, 
+            plugins: { legend: { display: true, position: 'bottom', labels: { padding: 15, usePointStyle: true, font: { size: 10, weight: 'bold' } } } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } },
             animation: { duration: 1000, easing: 'easeOutQuart' } 
         } 
     }; 
 }
-function initChart() { try { const ctxOverview = document.getElementById('visitorChartOverview'); const ctxAnalitik = document.getElementById('visitorChartAnalitik'); if(ctxOverview) chartOverview = new Chart(ctxOverview, createChartConfig()); if(ctxAnalitik) chartAnalitik = new Chart(ctxAnalitik, createChartConfig()); } catch(e) {} }
+
+// Konfigurasi Pie Chart Total Pendaftar (Kiri)
+function createPieChartConfig() {
+    return {
+        type: 'doughnut',
+        data: {
+            labels: ['Selesai', 'Di Ruangan', 'Menunggu', 'Batal'],
+            datasets: [{
+                data: [0, 0, 0, 0],
+                backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b', '#ef4444'], // Hijau, Biru, Kuning, Merah
+                borderWidth: 0, hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '70%',
+            plugins: { legend: { display: false } },
+            animation: { duration: 1000, easing: 'easeOutQuart' }
+        }
+    };
+}
+
+function initChart() { 
+    try { 
+        const ctxPie = document.getElementById('visitorChartPie'); 
+        if(ctxPie) chartPie = new Chart(ctxPie, createPieChartConfig()); 
+        
+        const ctxAnalitik = document.getElementById('visitorChartAnalitik'); 
+        if(ctxAnalitik) chartAnalitik = new Chart(ctxAnalitik, createBarChartConfig()); 
+    } catch(e) {} 
+}
 initChart(); 
-function updateChartData(murid, dinas, umum) { const dataObj = [murid, dinas, umum]; if (chartOverview) { chartOverview.data.datasets[0].data = dataObj; chartOverview.update(); } if (chartAnalitik) { chartAnalitik.data.datasets[0].data = dataObj; chartAnalitik.update(); } }
+
+function updateChartDataBulanan() {
+    if (!chartAnalitik || !chartPie) return;
+
+    let cMenunggu = 0, cBertemu = 0, cSelesai = 0, cDitolak = 0;
+    for (const code in guestsDatabase) {
+        const status = guestsDatabase[code].status;
+        if (status === 'menunggu') cMenunggu++;
+        else if (status === 'bertemu') cBertemu++;
+        else if (status === 'selesai') cSelesai++;
+        else if (status === 'ditolak') cDitolak++;
+    }
+    const totalSemua = cMenunggu + cBertemu + cSelesai + cDitolak;
+    chartPie.data.datasets[0].data = [cSelesai, cBertemu, cMenunggu, cDitolak];
+    chartPie.update();
+
+    let pct = 0;
+    if (totalSemua > 0) pct = Math.round((cSelesai / totalSemua) * 100);
+    const elPct = document.getElementById('donut-pct');
+    if (elPct) elPct.innerText = `${pct}%`;
+
+    const bulanSekarang = new Date().getMonth();
+    let labelBulan = [];
+    let dataMurid = [0,0,0,0,0,0], dataDinas = [0,0,0,0,0,0], dataUmum = [0,0,0,0,0,0];
+    const namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    for (let i = 5; i >= 0; i--) {
+        let b = bulanSekarang - i;
+        if (b < 0) b += 12; 
+        labelBulan.push(namaBulan[b]);
+    }
+
+    for (const code in guestsDatabase) {
+        const item = guestsDatabase[code];
+        const dateObj = new Date(item.date);
+        const blnItem = dateObj.getMonth();
+        let diffBulan = bulanSekarang - blnItem;
+        if (diffBulan < 0) diffBulan += 12;
+
+        if (diffBulan <= 5) {
+            const idxArray = 5 - diffBulan; 
+            const k = (item.kategori || '').toLowerCase(); 
+            if (k.includes('murid') || k.includes('siswa')) dataMurid[idxArray]++; 
+            else if (k.includes('dinas')) dataDinas[idxArray]++; 
+            else dataUmum[idxArray]++;
+        }
+    }
+
+    chartAnalitik.data.labels = labelBulan;
+    chartAnalitik.data.datasets[0].data = dataMurid;
+    chartAnalitik.data.datasets[1].data = dataDinas;
+    chartAnalitik.data.datasets[2].data = dataUmum;
+    chartAnalitik.update();
+}
 
 // =========================================================
 // LOGIN AMAN & LOGOUT
@@ -246,7 +322,7 @@ window.executeSafeLogin = async function() {
     else if (roleValid === 'admin') { currentUserRole = 'admin'; document.getElementById('admin-nav-group').classList.remove('hidden'); document.getElementById('admin-nav-group').classList.add('flex'); switchAppView('view-admin-overview'); }
 
     document.getElementById('header-notif-container').classList.remove('hidden');
-    const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-emerald-600', 'bg-slate-800'); btnAction.classList.replace('hover:bg-emerald-700', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-emerald-600/25', 'shadow-slate-800/25');
+    const btnAction = document.getElementById('btn-sidebar-action'); btnAction.classList.replace('bg-emerald-500', 'bg-slate-800'); btnAction.classList.replace('hover:bg-emerald-600', 'hover:bg-slate-700'); btnAction.classList.replace('shadow-emerald-500/25', 'shadow-slate-800/25');
     document.getElementById('sidebar-icon').setAttribute('data-lucide', 'log-out'); document.getElementById('sidebar-text').innerText = "Keluar";
 
     lucide.createIcons(); renderMobileNav(); refreshDashboardMetrics(); document.getElementById('username-input').value = ""; document.getElementById('password-input').value = "";
@@ -393,19 +469,17 @@ window.changeGuestStatus = function(code, newStatus) {
 // REFRESH DASHBOARD UI
 // =========================================================
 function refreshDashboardMetrics() {
-    let menunggu = 0, bertemu = 0, selesai = 0, ditolak = 0; let murid = 0, dinas = 0, umum = 0;
+    let menunggu = 0, bertemu = 0, selesai = 0, ditolak = 0; 
     for (const code in guestsDatabase) {
         const item = guestsDatabase[code];
-        if (item.status === 'menunggu') menunggu++; else if (item.status === 'bertemu') bertemu++; else if (item.status === 'selesai') selesai++; else if (item.status === 'ditolak') ditolak++;
-        
-        const k = (item.kategori || '').toLowerCase(); 
-        if (k.includes('murid') || k.includes('siswa')) murid++; 
-        else if (k.includes('dinas')) dinas++; 
-        else umum++;
+        if (item.status === 'menunggu') menunggu++; 
+        else if (item.status === 'bertemu') bertemu++; 
+        else if (item.status === 'selesai') selesai++; 
+        else if (item.status === 'ditolak') ditolak++;
     }
 
-    const totalTamu = menunggu + bertemu + selesai;
-    updateChartData(murid, dinas, umum); 
+    const totalTamu = menunggu + bertemu + selesai + ditolak;
+    updateChartDataBulanan(); 
 
     if(document.getElementById('stat-bertemu')) {
         document.getElementById('stat-bertemu').innerText = bertemu; document.getElementById('stat-menunggu-ratio').innerText = menunggu; document.getElementById('stat-checkout-count').innerText = selesai;
@@ -415,8 +489,7 @@ function refreshDashboardMetrics() {
         renderActiveGuestsGrid();
     }
     if(document.getElementById('stat-total-tamu')) {
-        document.getElementById('stat-total-tamu').innerText = totalTamu; const donutPct = Math.min(100, Math.round((totalTamu / 20) * 100)); const donutRing = document.getElementById('donut-progress');
-        if (donutRing) donutRing.setAttribute('stroke-dasharray', `${donutPct}, 100`); document.getElementById('donut-pct').innerText = `${donutPct}%`;
+        document.getElementById('stat-total-tamu').innerText = totalTamu; 
     }
     renderScheduleAnalytics(); renderKepsekDashboard();
 }
@@ -563,7 +636,6 @@ window.submitGuestForm = function() {
         kategori: finalKategori,
         tujuan: tujuan,
         photo: photoSrc,
-        // surat_jalan: suratJalanFile, // Hapus // di depannya kalau tabel Supabase sudah ditambah kolom 'surat_jalan' bertipe TEXT
         date: guestDate,
         plan_time: planTimeWIB,
         status: 'menunggu',
