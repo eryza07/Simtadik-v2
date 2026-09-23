@@ -444,23 +444,42 @@ window.retakePhoto = function() {
 function stopCamera() { if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; } }
 
 // =========================================================
-// SALIN KODE TIKET & UPDATE STATUS
+// SALIN KODE TIKET & UPDATE STATUS (FALLBACK ANTI-GAGAL)
 // =========================================================
 window.copyTicketCode = function(btn) {
     const code = document.getElementById('ticket-code').innerText;
-    navigator.clipboard.writeText(code).then(() => {
+    
+    try {
+        // Cara Klasik (Fallback Anti-Gagal)
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        
+        textArea.focus();
+        textArea.select();
+        
+        document.execCommand('copy'); 
+        document.body.removeChild(textArea); 
+
+        // Animasi Sukses
         const icon = btn.querySelector('i');
         icon.setAttribute('data-lucide', 'check-circle');
         btn.classList.replace('text-slate-300', 'text-emerald-400');
         lucide.createIcons();
+        
+        // Kembalikan ke ikon copy setelah 2 detik
         setTimeout(() => {
             icon.setAttribute('data-lucide', 'copy');
             btn.classList.replace('text-emerald-400', 'text-slate-300');
             lucide.createIcons();
         }, 2000);
-    }).catch(err => {
-        alert("Gagal menyalin kode! Silakan salin manual.");
-    });
+
+    } catch(err) {
+        alert("Gagal menyalin kode! HP atau browser tidak mendukung fitur ini.");
+    }
 };
 
 window.changeGuestStatus = function(code, newStatus) {
