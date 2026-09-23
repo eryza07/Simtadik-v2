@@ -179,6 +179,7 @@ function renderMobileNav() {
 window.toggleLoginAction = function(btn) { if(btn) triggerIconAnimation(btn); if(currentUserRole === 'guest') switchAppView('view-login'); else processLogout(); };
 renderMobileNav(); setTimeout(updateIndicators, 100);
 
+
 // =========================================================
 // GRAFIK BAR BULANAN & PIE CHART STATUS
 // =========================================================
@@ -209,7 +210,7 @@ function createPieChartConfig() {
             labels: ['Selesai', 'Di Ruangan', 'Menunggu', 'Batal'],
             datasets: [{
                 data: [0, 0, 0, 0],
-                backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b', '#ef4444'],
+                backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b', '#ef4444'], // Hijau, Biru, Kuning, Merah
                 borderWidth: 0, hoverOffset: 4
             }]
         },
@@ -444,41 +445,64 @@ window.retakePhoto = function() {
 function stopCamera() { if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; } }
 
 // =========================================================
-// SALIN KODE TIKET & UPDATE STATUS (FALLBACK ANTI-GAGAL)
+// SALIN KODE TIKET & UPDATE STATUS (VERSI SUPER FALLBACK)
 // =========================================================
 window.copyTicketCode = function(btn) {
-    const code = document.getElementById('ticket-code').innerText;
+    // Pastikan kode terambil tanpa spasi
+    const codeText = document.getElementById('ticket-code').innerText.trim();
     
-    try {
-        // Cara Klasik (Fallback Anti-Gagal)
-        const textArea = document.createElement("textarea");
-        textArea.value = code;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-999999px";
-        textArea.style.top = "-999999px";
-        document.body.appendChild(textArea);
-        
-        textArea.focus();
-        textArea.select();
-        
-        document.execCommand('copy'); 
-        document.body.removeChild(textArea); 
-
-        // Animasi Sukses
+    // Fungsi untuk memutar animasi centang hijau
+    const showSuccessAnimation = () => {
         const icon = btn.querySelector('i');
         icon.setAttribute('data-lucide', 'check-circle');
         btn.classList.replace('text-slate-300', 'text-emerald-400');
         lucide.createIcons();
-        
-        // Kembalikan ke ikon copy setelah 2 detik
         setTimeout(() => {
             icon.setAttribute('data-lucide', 'copy');
             btn.classList.replace('text-emerald-400', 'text-slate-300');
             lucide.createIcons();
         }, 2000);
+    };
 
-    } catch(err) {
-        alert("Gagal menyalin kode! HP atau browser tidak mendukung fitur ini.");
+    // Fungsi Gaib Anti-Blokir
+    const fallbackCopyText = (text) => {
+        const input = document.createElement("input");
+        input.value = text;
+        
+        // Taruh di layar tapi bikin transparan (browser tidak akan curiga)
+        input.style.position = "absolute";
+        input.style.opacity = "0";
+        input.style.top = "50%";
+        input.style.left = "50%";
+        
+        document.body.appendChild(input);
+        
+        // Fokus dan seleksi teks
+        input.focus();
+        input.select();
+        input.setSelectionRange(0, 99999); 
+        
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                showSuccessAnimation();
+            } else {
+                alert("Gagal menyalin. Silakan blok tulisan SMAN1-XXXX lalu salin secara manual.");
+            }
+        } catch (err) {
+            alert("Browser Anda memblokir fungsi salin otomatis.");
+        }
+        
+        document.body.removeChild(input);
+    };
+
+    // Coba metode modern dulu, kalau gagal langsung pakai fallback
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(codeText)
+            .then(showSuccessAnimation)
+            .catch(() => fallbackCopyText(codeText));
+    } else {
+        fallbackCopyText(codeText);
     }
 };
 
